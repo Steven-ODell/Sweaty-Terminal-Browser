@@ -106,3 +106,12 @@ void initExplorer() {
   // If it isnt an invalid screen size then load the path into the entries
   loadEntriesFrPath(E.full_path);
 }
+
+void setPathsForBaseSearch() {
+
+  for (const auto &entry : fs::recursive_directory_iterator(E.base_dir)) {
+    if (entry.path().string().find("/.") != std::string::npos)
+      continue;
+    E.all_paths.push_back(entry);
+  }
+}

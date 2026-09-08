@@ -1,5 +1,6 @@
 #include "term_set.h"
 #include <csignal>
+#include <iostream>
 
 /*
  Create a file explorer that works with ansi codes for terminal and cursor
@@ -27,6 +28,9 @@ int main(int argc, char *argv[]) {
 
   // Set the path of the folder you are in to the browser directory
   E.full_path = fs::current_path().string();
+  setPathsForBaseSearch();
+
+  std::cout << "Set " << E.all_paths.size() << " paths" << std::endl;
 
   if (argc > 1) {
     E.full_path = E.full_path.string() + argv[1];

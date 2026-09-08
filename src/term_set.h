@@ -11,6 +11,7 @@ void die(const char *s);
 
 struct Config {
   std::string base_dir = "/home/sao";
+  std::vector<std::filesystem::directory_entry> all_paths;
   int cx;
   int screen_rows;
   int screen_cols;
@@ -42,3 +43,5 @@ int getWinSize(int *rows, int *cols);
 void refreshScreen();
 
 void initExplorer();
+
+void setPathsForBaseSearch();
