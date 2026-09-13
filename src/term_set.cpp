@@ -5,10 +5,10 @@
 #include <unistd.h>
 
 Config E;
+std::string die_string = "\x1b[2J\x1b[H";
 
 void die(const char *s) {
-  write(STDOUT_FILENO, "\x1b[2J", 4);
-  write(STDOUT_FILENO, "\x1b[H", 3);
+  write(STDOUT_FILENO, die_string.c_str(), die_string.size());
 
   perror(s);
   exit(1);
@@ -64,8 +64,7 @@ int getWinSize(int *rows, int *cols) {
 
 void refreshScreen() {
   // Clear screen and set cursor to top corner
-  write(STDOUT_FILENO, "\x1b[2J", 4);
-  write(STDOUT_FILENO, "\x1b[H", 3);
+  write(STDOUT_FILENO, die_string.c_str(), die_string.size());
 
   drawRows();
 

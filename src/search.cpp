@@ -3,25 +3,25 @@
 #include <filesystem>
 #include <vector>
 
-using namespace std;
 namespace fs = std::filesystem;
 
-vector<int> searchCurBuffer(string cur_buffer) {
+std::vector<int> searchCurBuffer(std::string cur_buffer) {
 
-  vector<int> sorted_array;
+  std::vector<int> sorted_array;
   fs::path home_dir;
 
   while (true) {
-    vector<uint32_t> indexes_of_sorted;
-    vector<pair<uint32_t, uint32_t>> hits;
-    string to_find = cur_buffer;
+    std::vector<uint32_t> indexes_of_sorted;
+    std::vector<std::pair<uint32_t, uint32_t>> hits;
+    std::string to_find = cur_buffer;
 
     for (size_t cur_path = 0; cur_path < (E.all_paths.size()); cur_path++) {
 
-      string path_string = E.all_paths[cur_path].path().filename().string();
+      std::string path_string =
+          E.all_paths[cur_path].path().filename().string();
 
       size_t position = path_string.find(to_find);
-      if (position != string::npos) {
+      if (position != std::string::npos) {
         hits.push_back({(uint32_t)position, (uint32_t)cur_path});
         continue;
       }

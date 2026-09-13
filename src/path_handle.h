@@ -15,7 +15,6 @@ void checkIfFile(fs::path path_to_check);
 void openInEditor(const fs::path &file);
 
 void openInViewer(const fs::path &file);
-
 void loadPreviousPath(fs::path cur_path);
 
 void openCurrentPath(fs::path path);
