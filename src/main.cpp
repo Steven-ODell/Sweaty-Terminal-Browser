@@ -28,9 +28,12 @@ int main(int argc, char *argv[]) {
 
   // Set the path of the folder you are in to the browser directory
   E.full_path = fs::current_path().string();
+
+  // Loop through and set the initial search array for searching later
   setPathsForBaseSearch();
 
   std::cout << "Set " << E.all_paths.size() << " paths" << std::endl;
+  sleep(1);
 
   if (argc > 1) {
     E.full_path = E.full_path.string() + argv[1];
