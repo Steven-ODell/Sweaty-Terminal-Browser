@@ -10,3 +10,4 @@ void processKeypress();
 char readKey();
 
 void moveCursorDown();
+void moveCursorUp();

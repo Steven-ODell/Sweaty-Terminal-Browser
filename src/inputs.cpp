@@ -57,6 +57,11 @@ void processKeypress() {
       break;
     }
 
+    case 's': {
+      E.state = Config::State::Search;
+      break;
+    }
+
     // Open
     case 'o': {
       openCurrentPath(E.entries[E.cur_row - 1]);
@@ -73,13 +78,7 @@ void processKeypress() {
 
     // Up
     case 'k': {
-      if (E.cx > 1) {
-        E.cx--;
-        E.cur_row--;
-      } else if (E.window_offset > 0) {
-        E.window_offset--;
-        E.cur_row--;
-      }
+      moveCursorUp();
       break;
     }
 
@@ -112,6 +111,7 @@ void processKeypress() {
   }
 
   case Config::State::Search: {
+
     break;
   }
 
@@ -125,6 +125,14 @@ void processKeypress() {
 
     case 'Y': {
       deletePath(E.entries[E.cur_row - 1]);
+      break;
+    }
+
+    // Esc
+    case '\x1b': {
+      loadEntriesFrPath(E.full_path);
+      E.state = Config::State::Browser;
+      E.del_choice = "";
       break;
     }
 
@@ -210,5 +218,15 @@ void moveCursorDown() {
         E.cur_row++;
       }
     }
+  }
+}
+
+void moveCursorUp() {
+  if (E.cx > 1) {
+    E.cx--;
+    E.cur_row--;
+  } else if (E.window_offset > 0) {
+    E.window_offset--;
+    E.cur_row--;
   }
 }

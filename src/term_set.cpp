@@ -108,7 +108,7 @@ void initExplorer() {
 void setPathsForBaseSearch() {
   for (const auto &entry : fs::recursive_directory_iterator(E.base_dir)) {
     // if (entry.path().string().find("/.") != std::string::npos)
-    // continue;
+    //   continue;
     E.all_paths.push_back(entry);
   }
 }
