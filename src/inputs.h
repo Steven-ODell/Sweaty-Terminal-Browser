@@ -8,3 +8,5 @@
 void processKeypress();
 
 char readKey();
+
+void moveCursorDown();

@@ -16,7 +16,7 @@ void loadEntriesFrPath(fs::path new_path) {
       E.entries.push_back(entry);
     }
     E.full_path.assign(new_path);
-    if (E.state == Config::State::BrowserHidden) {
+    if (E.hidden) {
       for (int i = E.entries.size() - 1; i >= 0; i--) {
         if (E.entries[i].path().filename().string()[0] == '.') {
           E.entries.erase(E.entries.begin() + i);
@@ -45,35 +45,22 @@ void checkIfFile(fs::path path_to_check) {
   if (fs::is_regular_file(path_to_check)) {
     // Check if image or binary or able to be opened in nvim
     std::string EXT = path_to_check.extension();
-    if (EXT == ".png" || EXT == ".jpg" || EXT == ".jpeg" || EXT == ".gif" ||
-        EXT == ".webp" || EXT == ".bmp") {
+    if (EXT == ".png" || EXT == ".jpg" || EXT == ".jpeg" || EXT == ".gif" || EXT == ".webp" || EXT == ".bmp") {
       // Open with image viewer
       openInViewer(path_to_check);
-    } else if (EXT == ".o" || EXT == ".a" || EXT == ".so" || EXT == ".ko" ||
-               EXT == ".elf" || EXT == ".bin" || EXT == ".exe" ||
-               EXT == ".dll" || EXT == ".dylib" || EXT == ".pyc" ||
-               EXT == ".pyo" || EXT == ".class" || EXT == ".jar" ||
-               EXT == ".wasm" || EXT == ".zip" || EXT == ".tar" ||
-               EXT == ".gz" || EXT == ".bz2" || EXT == ".xz" || EXT == ".zst" ||
-               EXT == ".7z" || EXT == ".rar" || EXT == ".iso" ||
-               EXT == ".deb" || EXT == ".rpm" || EXT == ".mp3" ||
-               EXT == ".wav" || EXT == ".flac" || EXT == ".ogg" ||
-               EXT == ".opus" || EXT == ".m4a" || EXT == ".mp4" ||
-               EXT == ".mkv" || EXT == ".avi" || EXT == ".mov" ||
-               EXT == ".webm" || EXT == ".ttf" || EXT == ".otf" ||
-               EXT == ".ttc" || EXT == ".woff" || EXT == ".woff2" ||
-               EXT == ".pdf" || EXT == ".doc" || EXT == ".docx" ||
-               EXT == ".xls" || EXT == ".xlsx" || EXT == ".ppt" ||
-               EXT == ".pptx" || EXT == ".odt" || EXT == ".db" ||
-               EXT == ".sqlite" || EXT == ".sqlite3" || EXT == ".dat" ||
-               EXT == ".pack" || EXT == ".idx" || EXT == ".ch8" ||
-               EXT == ".nes" || EXT == ".gb" || EXT == ".gbc" ||
-               EXT == ".gba" || EXT == ".smc" || EXT == ".sfc" ||
-               EXT == ".z64" || EXT == ".n64" || EXT == ".rom" ||
-               EXT == ".blend" || EXT == ".stl" || EXT == ".3mf" ||
-               EXT == ".fbx" || EXT == ".glb" || EXT == ".dwg") {
-      std::cout << "Error this file type can not be opened with an editor"
-                << std::endl;
+    } else if (EXT == ".o" || EXT == ".a" || EXT == ".so" || EXT == ".ko" || EXT == ".elf" || EXT == ".bin" ||
+               EXT == ".exe" || EXT == ".dll" || EXT == ".dylib" || EXT == ".pyc" || EXT == ".pyo" || EXT == ".class" ||
+               EXT == ".jar" || EXT == ".wasm" || EXT == ".zip" || EXT == ".tar" || EXT == ".gz" || EXT == ".bz2" ||
+               EXT == ".xz" || EXT == ".zst" || EXT == ".7z" || EXT == ".rar" || EXT == ".iso" || EXT == ".deb" ||
+               EXT == ".rpm" || EXT == ".mp3" || EXT == ".wav" || EXT == ".flac" || EXT == ".ogg" || EXT == ".opus" ||
+               EXT == ".m4a" || EXT == ".mp4" || EXT == ".mkv" || EXT == ".avi" || EXT == ".mov" || EXT == ".webm" ||
+               EXT == ".ttf" || EXT == ".otf" || EXT == ".ttc" || EXT == ".woff" || EXT == ".woff2" || EXT == ".pdf" ||
+               EXT == ".doc" || EXT == ".docx" || EXT == ".xls" || EXT == ".xlsx" || EXT == ".ppt" || EXT == ".pptx" ||
+               EXT == ".odt" || EXT == ".db" || EXT == ".sqlite" || EXT == ".sqlite3" || EXT == ".dat" ||
+               EXT == ".pack" || EXT == ".idx" || EXT == ".ch8" || EXT == ".nes" || EXT == ".gb" || EXT == ".gbc" ||
+               EXT == ".gba" || EXT == ".smc" || EXT == ".sfc" || EXT == ".z64" || EXT == ".n64" || EXT == ".rom" ||
+               EXT == ".blend" || EXT == ".stl" || EXT == ".3mf" || EXT == ".fbx" || EXT == ".glb" || EXT == ".dwg") {
+      std::cout << "Error this file type can not be opened with an editor" << std::endl;
 
       std::string seq = "\x1b[" + std::to_string(E.cx) + ";1H";
       write(STDOUT_FILENO, seq.c_str(), seq.size());
@@ -84,8 +71,7 @@ void checkIfFile(fs::path path_to_check) {
       openInEditor(path_to_check);
     }
   } else {
-    std::cout << "Error this file type can not be opened with an editor"
-              << std::endl;
+    std::cout << "Error this file type can not be opened with an editor" << std::endl;
 
     std::string seq = "\x1b[" + std::to_string(E.cx) + ";1H";
     write(STDOUT_FILENO, seq.c_str(), seq.size());
@@ -144,8 +130,7 @@ void renamePath() {
     sleep(1);
   } else {
     try {
-      fs::rename(E.entries[E.cur_row - 1].path(),
-                 E.entries[E.cur_row - 1].path().parent_path() / E.new_name);
+      fs::rename(E.entries[E.cur_row - 1].path(), E.entries[E.cur_row - 1].path().parent_path() / E.new_name);
       loadEntriesFrPath(E.full_path);
       E.state = Config::State::Browser;
       E.new_name = "";
@@ -167,7 +152,7 @@ void deletePath(fs::path incoming_path) {
     std::cout << "File doesnt exist to delete" << std::endl;
     sleep(1);
   }
+  E.state = Config::State::Browser;
   loadEntriesFrPath(E.full_path);
-  E.state = Config::State::BrowserHidden;
   E.del_choice = "";
 }

@@ -22,7 +22,8 @@ struct Config {
   std::filesystem::path full_path;
   struct termios orig_termios;
   std::vector<std::filesystem::directory_entry> entries;
-  enum class State { Browser, BrowserHidden, Rename, Search, Preview, Delete };
+  enum class State { Browser, Rename, Search, Preview, Delete };
+  bool hidden;
   State state;
 };
 

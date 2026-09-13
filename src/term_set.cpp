@@ -70,22 +70,20 @@ void refreshScreen() {
 
   if (E.state == Config::State::Rename) {
     std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
-    line += "Rename '" + E.entries[E.cur_row - 1].path().filename().string() +
-            "' to: " + E.new_name;
-    write(STDOUT_FILENO, line.c_str(), line.size());
-  }
-
-  else if (E.state == Config::State::BrowserHidden) {
-    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
-    line += "Folders are hidden";
+    line += "Rename '" + E.entries[E.cur_row - 1].path().filename().string() + "' to: " + E.new_name;
     write(STDOUT_FILENO, line.c_str(), line.size());
   }
 
   else if (E.state == Config::State::Delete) {
     std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
-    line += "Are you sure you want to delete '" +
-            E.entries[E.cur_row - 1].path().filename().string() + E.new_name +
+    line += "Are you sure you want to delete '" + E.entries[E.cur_row - 1].path().filename().string() + E.new_name +
             ": [y/n]";
+    write(STDOUT_FILENO, line.c_str(), line.size());
+  }
+
+  if (E.hidden) {
+    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
+    line += "Folders are hidden";
     write(STDOUT_FILENO, line.c_str(), line.size());
   }
 
@@ -95,8 +93,9 @@ void refreshScreen() {
 }
 
 void initExplorer() {
-  E.state = Config::State::BrowserHidden;
+  E.state = Config::State::Browser;
   E.cx = 1;
+  E.hidden = true;
 
   // If the window comes back as -1 or invalid then "die"
   if (getWinSize(&E.screen_rows, &E.screen_cols) == -1)
@@ -107,10 +106,9 @@ void initExplorer() {
 }
 
 void setPathsForBaseSearch() {
-
   for (const auto &entry : fs::recursive_directory_iterator(E.base_dir)) {
-    if (entry.path().string().find("/.") != std::string::npos)
-      continue;
+    // if (entry.path().string().find("/.") != std::string::npos)
+    // continue;
     E.all_paths.push_back(entry);
   }
 }
