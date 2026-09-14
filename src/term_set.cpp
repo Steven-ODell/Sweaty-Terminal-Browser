@@ -107,6 +107,7 @@ void initExplorer() {
   E.state = Config::State::Browser;
   E.cx = 1;
   E.hidden = true;
+  E.search_selector = false;
 
   // If the window comes back as -1 or invalid then "die"
   if (getWinSize(&E.screen_rows, &E.screen_cols) == -1)

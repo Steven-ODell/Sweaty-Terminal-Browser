@@ -116,13 +116,27 @@ void processKeypress() {
     switch (c) {
     // Enter
     case '\r': {
+      E.search_selector = true;
       setSearchPath();
+      break;
+    }
+
+    // Down during path selection
+    case 'j': {
+      if (E.search_selector) {
+        moveCursorDownSearch();
+
+      } else {
+        E.search_in += c;
+        setSearchPath();
+      }
       break;
     }
 
     // Esc
     case '\x1b': {
       E.hidden = E.hidden_holder;
+      E.search_selector = false;
       loadEntriesFrPath(E.full_path);
       E.state = Config::State::Browser;
       E.search_in = "";
@@ -131,6 +145,7 @@ void processKeypress() {
 
     // Backspace
     case '\x7f': {
+      E.search_selector = false;
       if (E.search_in.size() > 0) {
         E.search_in.pop_back();
         setSearchPath();
@@ -139,6 +154,7 @@ void processKeypress() {
     }
 
     default: {
+      E.search_selector = false;
       E.search_in += c;
       setSearchPath();
       break;
