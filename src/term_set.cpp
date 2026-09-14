@@ -1,5 +1,6 @@
 #include "term_set.h"
 #include "path_handle.h"
+#include "search.h"
 #include <filesystem>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -66,18 +67,28 @@ void refreshScreen() {
   // Clear screen and set cursor to top corner
   write(STDOUT_FILENO, die_string.c_str(), die_string.size());
 
-  drawRows();
-
-  if (E.state == Config::State::Rename) {
+  if (E.state == Config::State::Browser) {
+    drawRows();
+  } else if (E.state == Config::State::Rename) {
+    drawRows();
     std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
     line += "Rename '" + E.entries[E.cur_row - 1].path().filename().string() + "' to: " + E.new_name;
     write(STDOUT_FILENO, line.c_str(), line.size());
   }
 
   else if (E.state == Config::State::Delete) {
+    drawRows();
     std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
     line += "Are you sure you want to delete '" + E.entries[E.cur_row - 1].path().filename().string() + E.new_name +
             ": [y/n]";
+    write(STDOUT_FILENO, line.c_str(), line.size());
+  }
+
+  else if (E.state == Config::State::Search) {
+    E.hidden = false;
+    drawSearchRows();
+    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
+    line += "Search for: " + E.search_in;
     write(STDOUT_FILENO, line.c_str(), line.size());
   }
 

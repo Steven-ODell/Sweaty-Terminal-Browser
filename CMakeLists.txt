@@ -15,4 +15,6 @@ add_executable(Cexp
     src/inputs.cpp
     src/path_handle.h
     src/path_handle.cpp
+    src/search.h
+    src/search.cpp
 )

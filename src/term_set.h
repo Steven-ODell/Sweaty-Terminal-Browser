@@ -19,11 +19,14 @@ struct Config {
   int cur_row;
   std::string del_choice;
   std::string new_name;
+  std::string search_in;
   std::filesystem::path full_path;
+  std::vector<std::pair<uint32_t, uint32_t>> hits;
   struct termios orig_termios;
   std::vector<std::filesystem::directory_entry> entries;
   enum class State { Browser, Rename, Search, Preview, Delete };
   bool hidden;
+  bool hidden_holder;
   State state;
 };
 

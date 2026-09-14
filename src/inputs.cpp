@@ -1,5 +1,6 @@
 #include "inputs.h"
 #include "path_handle.h"
+#include "search.h"
 #include "term_set.h"
 #include <filesystem>
 
@@ -58,6 +59,7 @@ void processKeypress() {
     }
 
     case 's': {
+      E.hidden_holder = E.hidden;
       E.state = Config::State::Search;
       break;
     }
@@ -111,6 +113,37 @@ void processKeypress() {
   }
 
   case Config::State::Search: {
+    switch (c) {
+    // Enter
+    case '\r': {
+      setSearchPath();
+      break;
+    }
+
+    // Esc
+    case '\x1b': {
+      E.hidden = E.hidden_holder;
+      loadEntriesFrPath(E.full_path);
+      E.state = Config::State::Browser;
+      E.search_in = "";
+      break;
+    }
+
+    // Backspace
+    case '\x7f': {
+      if (E.search_in.size() > 0) {
+        E.search_in.pop_back();
+        setSearchPath();
+      }
+      break;
+    }
+
+    default: {
+      E.search_in += c;
+      setSearchPath();
+      break;
+    }
+    }
 
     break;
   }
@@ -180,6 +213,7 @@ void processKeypress() {
       }
       break;
     }
+
     default: {
       E.new_name += c;
       break;

@@ -1,7 +1,6 @@
-#include "term_set.cpp"
+#include "search.h"
 #include <algorithm>
-#include <filesystem>
-#include <vector>
+#include <iostream>
 
 namespace fs = std::filesystem;
 
@@ -24,7 +23,7 @@ std::vector<std::pair<uint32_t, uint32_t>> searchCurBuffer(std::string cur_buffe
       continue;
     }
 
-    size_t query_index, seq_start, seq_end = 0;
+    size_t query_index = 0, seq_start = 0, seq_end = 0;
 
     for (int cur_char = 0; cur_char < path_string.size(); cur_char++) {
       if (query_index < to_find.size() && path_string[cur_char] == to_find[query_index]) {
@@ -44,4 +43,27 @@ std::vector<std::pair<uint32_t, uint32_t>> searchCurBuffer(std::string cur_buffe
 
   sort(hits.begin(), hits.end());
   return hits;
+}
+
+void setSearchPath() {
+  if (E.search_in == "") {
+    std::cout << "Error: Field was empty" << std::endl;
+    sleep(1);
+  } else {
+    E.hits = searchCurBuffer(E.search_in);
+  }
+}
+
+void drawSearchRows() {
+  for (int i = 0; i < E.screen_rows - 1; i++) {
+    int index = i + E.window_offset;
+    if (index >= E.hits.size())
+      break;
+    std::string buf;
+    buf = "» " + E.all_paths[E.hits[index].second].path().string();
+    write(STDOUT_FILENO, buf.c_str(), buf.size());
+    if (i < E.screen_rows - 1) {
+      write(STDOUT_FILENO, "\r\n", 2);
+    }
+  }
 }
