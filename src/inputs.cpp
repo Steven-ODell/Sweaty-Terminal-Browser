@@ -121,11 +121,20 @@ void processKeypress() {
       break;
     }
 
+    case 'k': {
+      if (E.search_selector) {
+        moveCursorUpSearch();
+      } else {
+        E.search_in += c;
+        setSearchPath();
+      }
+      break;
+    }
+
     // Down during path selection
     case 'j': {
       if (E.search_selector) {
         moveCursorDownSearch();
-
       } else {
         E.search_in += c;
         setSearchPath();

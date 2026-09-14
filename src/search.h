@@ -14,3 +14,5 @@ void setSearchPath();
 void drawSearchRows();
 
 void moveCursorDownSearch();
+
+void moveCursorUpSearch();

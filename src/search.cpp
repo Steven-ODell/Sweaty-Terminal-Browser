@@ -67,3 +67,28 @@ void drawSearchRows() {
     }
   }
 }
+
+void moveCursorDownSearch() {
+  if (E.cur_row < (E.hits.size())) {
+    if (E.cx < E.screen_rows - (E.screen_rows / 2)) {
+      E.cx++;
+      E.cur_row++;
+    } else if (E.window_offset + E.screen_rows < E.hits.size()) {
+      E.window_offset++;
+      E.cur_row++;
+    } else if (E.cx < E.screen_rows) {
+      E.cx++;
+      E.cur_row++;
+    }
+  }
+}
+
+void moveCursorUpSearch() {
+  if (E.cx > 1) {
+    E.cx--;
+    E.cur_row--;
+  } else if (E.window_offset > 0) {
+    E.window_offset--;
+    E.cur_row--;
+  }
+}
