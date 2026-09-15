@@ -1,6 +1,6 @@
-# Make Search work so that it allows you to select and open a directory
+# Work on refining Search 
 
-- STATUS: OPEN
+- STATUS: IN-PROG
 - PRIORITY: 100
 - TAGS:
 

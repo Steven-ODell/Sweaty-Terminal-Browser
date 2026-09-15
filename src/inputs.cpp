@@ -54,6 +54,7 @@ void processKeypress() {
 
     // Set State to Rename
     case 'r': {
+      E.hidden_holder = E.hidden;
       E.state = Config::State::Rename;
       break;
     }
@@ -116,8 +117,13 @@ void processKeypress() {
     switch (c) {
     // Enter
     case '\r': {
-      E.search_selector = true;
-      setSearchPath();
+      if (E.search_selector) {
+        selectSearchPath();
+        E.search_selector = false;
+      } else {
+        E.search_selector = true;
+        setSearchPath();
+      }
       break;
     }
 
@@ -144,11 +150,15 @@ void processKeypress() {
 
     // Esc
     case '\x1b': {
-      E.hidden = E.hidden_holder;
-      E.search_selector = false;
-      loadEntriesFrPath(E.full_path);
-      E.state = Config::State::Browser;
-      E.search_in = "";
+      if (E.search_selector) {
+        E.search_selector = false;
+      } else {
+        E.hidden = E.hidden_holder;
+        E.search_selector = false;
+        loadEntriesFrPath(E.full_path);
+        E.state = Config::State::Browser;
+        E.search_in = "";
+      }
       break;
     }
 
@@ -225,6 +235,7 @@ void processKeypress() {
 
     // Esc
     case '\x1b': {
+      E.hidden = E.hidden_holder;
       loadEntriesFrPath(E.full_path);
       E.state = Config::State::Browser;
       E.new_name = "";

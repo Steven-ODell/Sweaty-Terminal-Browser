@@ -70,13 +70,12 @@ void refreshScreen() {
   if (E.state == Config::State::Browser) {
     drawRows();
   } else if (E.state == Config::State::Rename) {
+    E.hidden = false;
     drawRows();
     std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
     line += "Rename '" + E.entries[E.cur_row - 1].path().filename().string() + "' to: " + E.new_name;
     write(STDOUT_FILENO, line.c_str(), line.size());
-  }
-
-  else if (E.state == Config::State::Delete) {
+  } else if (E.state == Config::State::Delete) {
     drawRows();
     std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
     line += "Are you sure you want to delete '" + E.entries[E.cur_row - 1].path().filename().string() + E.new_name +

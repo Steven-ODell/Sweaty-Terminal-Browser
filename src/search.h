@@ -11,6 +11,8 @@ std::vector<std::pair<uint32_t, uint32_t>> searchCurBuffer(std::string);
 
 void setSearchPath();
 
+void selectSearchPath();
+
 void drawSearchRows();
 
 void moveCursorDownSearch();
