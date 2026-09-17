@@ -1,6 +1,6 @@
 # Fix the search input so the cursor is where the user is typing
 
-- STATUS: OPEN
+- STATUS: IN_PROG 
 - PRIORITY: 100
 - TAGS:
 

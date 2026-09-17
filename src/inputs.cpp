@@ -3,6 +3,7 @@
 #include "search.h"
 #include "term_set.h"
 #include <filesystem>
+#include <iostream>
 
 std::string quit_escapes = "\x1b[2J\x1b[H";
 
@@ -118,8 +119,13 @@ void processKeypress() {
     // Enter
     case '\r': {
       if (E.search_selector) {
-        selectSearchPath();
-        E.search_selector = false;
+        if (E.search_in == "") {
+          std::cout << "Error: Field was empty" << std::endl;
+          sleep(1);
+        } else {
+          selectSearchPath();
+          E.search_selector = false;
+        }
       } else {
         E.search_selector = true;
         setSearchPath();

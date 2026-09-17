@@ -15,13 +15,12 @@ std::vector<std::pair<uint32_t, uint32_t>> searchCurBuffer(std::string cur_buffe
   std::vector<std::pair<uint32_t, uint32_t>> hits;
 
   std::vector<uint32_t> indexes_of_sorted;
-  std::string *to_find = &cur_buffer;
 
   for (size_t cur_path = 0; cur_path < (E.all_paths.size()); cur_path++) {
 
     std::string path_string = E.all_paths[cur_path].path().string();
 
-    size_t position = path_string.find(*to_find);
+    size_t position = path_string.find(cur_buffer);
     if (position != std::string::npos) {
       hits.push_back({(uint32_t)position, (uint32_t)cur_path});
       continue;
@@ -30,7 +29,7 @@ std::vector<std::pair<uint32_t, uint32_t>> searchCurBuffer(std::string cur_buffe
     size_t query_index = 0, seq_start = 0, seq_end = 0;
 
     for (int cur_char = 0; cur_char < path_string.size(); cur_char++) {
-      if (query_index < to_find->size() && path_string[cur_char] == (*to_find)[query_index]) {
+      if (query_index < cur_buffer.size() && path_string[cur_char] == (cur_buffer)[query_index]) {
         if (query_index == 0) {
           seq_start = cur_char;
         }
@@ -39,7 +38,7 @@ std::vector<std::pair<uint32_t, uint32_t>> searchCurBuffer(std::string cur_buffe
       }
     }
 
-    if (query_index == to_find->size()) {
+    if (query_index == cur_buffer.size()) {
       uint32_t span = seq_end - seq_start + 1;
       hits.push_back({100000 + span, (uint32_t)cur_path});
     }

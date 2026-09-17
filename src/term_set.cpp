@@ -68,19 +68,31 @@ void refreshScreen() {
   write(STDOUT_FILENO, die_string.c_str(), die_string.size());
 
   if (E.state == Config::State::Browser) {
+
     drawRows();
+    // Put the cursor on the correct row with E.cx
+    std::string seq = "\x1b[" + std::to_string(E.cx) + ";1H";
+    write(STDOUT_FILENO, seq.c_str(), seq.size());
+
   } else if (E.state == Config::State::Rename) {
+
     E.hidden = false;
     drawRows();
     std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
     line += "Rename '" + E.entries[E.cur_row - 1].path().filename().string() + "' to: " + E.new_name;
     write(STDOUT_FILENO, line.c_str(), line.size());
+    // Put the cursor on the correct row with E.cx
+    std::string seq = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
+    write(STDOUT_FILENO, seq.c_str(), seq.size());
+
   } else if (E.state == Config::State::Delete) {
+
     drawRows();
     std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
     line += "Are you sure you want to delete '" + E.entries[E.cur_row - 1].path().filename().string() + E.new_name +
             ": [y/n]";
     write(STDOUT_FILENO, line.c_str(), line.size());
+
   }
 
   else if (E.state == Config::State::Search) {
@@ -118,8 +130,8 @@ void initExplorer() {
 
 void setPathsForBaseSearch() {
   for (const auto &entry : fs::recursive_directory_iterator(E.base_dir)) {
-    // if (entry.path().string().find("/.") != std::string::npos)
-    //   continue;
+    if (entry.path().string().find("/.") != std::string::npos)
+      continue;
     E.all_paths.push_back(entry);
   }
 }

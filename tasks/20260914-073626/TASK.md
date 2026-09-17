@@ -1,7 +1,8 @@
 # Work on the flickering
 
 - STATUS: OPEN
-- PRIORITY: 100
+- PRIORITY: 10
 - TAGS:
 
-No description.
+
+I think this may be partially fixed with compiling in release instead of debug
