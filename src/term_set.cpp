@@ -77,10 +77,21 @@ void refreshScreen() {
     E.cx = E.screen_rows;
     E.hidden = false;
     drawRows();
-    std::string line = "Rename '" + E.entries[E.cur_row - 1].path().filename().string() + "' to: " + E.new_name;
+    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" + "Rename '" +
+                       E.entries[E.cur_row - 1].path().filename().string() + "' to: " + E.new_name;
     int name_offset = E.new_name.size() + 15 + E.entries[E.cur_row - 1].path().filename().string().size();
     // Put the cursor on the correct row with E.cx and column with offset
     line += "\x1b[" + std::to_string(E.cx) + ";" + std::to_string(name_offset) + "H";
+    write(STDOUT_FILENO, line.c_str(), line.size());
+
+  } else if (E.state == Config::State::Add) {
+    E.cx = E.screen_rows;
+    E.hidden = false;
+    drawRows();
+    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" + "New folder name: " + E.brand_new_name;
+    int name_offset = E.brand_new_name.size() + 18;
+    // Put the cursor on the correct row with E.cx and column with offset
+    line += "\x1b[" + std::to_string(E.screen_rows) + ";" + std::to_string(name_offset) + "H";
     write(STDOUT_FILENO, line.c_str(), line.size());
 
   } else if (E.state == Config::State::Delete) {

@@ -54,6 +54,13 @@ void processKeypress() {
       break;
     }
 
+    // Add
+    case 'a': {
+      E.hidden_holder = E.hidden;
+      E.state = Config::State::Add;
+      break;
+    }
+
     // Set State to Rename
     case 'r': {
       E.hidden_holder = E.hidden;
@@ -134,6 +141,16 @@ void processKeypress() {
         E.cur_row = 1;
         E.window_offset = 0;
         E.search_selector = true;
+        setSearchPath();
+      }
+      break;
+    }
+
+    case 'i': {
+      if (E.search_selector) {
+        E.search_selector = false;
+      } else {
+        E.search_in += c;
         setSearchPath();
       }
       break;
@@ -239,7 +256,47 @@ void processKeypress() {
     break;
   }
     //------------------------------------------------------------
+    //
+  case Config::State::Add: {
+    switch (c) {
+    // Enter
+    case '\r': {
+      addNewPath(E.full_path);
+      E.hidden = E.hidden_holder;
+      E.cx = 1;
+      loadEntriesFrPath(E.full_path);
+      E.state = Config::State::Browser;
+      E.brand_new_name = "";
+      break;
+    }
 
+    // Esc
+    case '\x1b': {
+      E.hidden = E.hidden_holder;
+      E.cx = 1;
+      loadEntriesFrPath(E.full_path);
+      E.state = Config::State::Browser;
+      E.brand_new_name = "";
+      break;
+    }
+
+    // Backspace
+    case '\x7f': {
+      if (E.brand_new_name.size() > 0) {
+        E.brand_new_name.pop_back();
+      }
+      break;
+    }
+
+    default: {
+      E.brand_new_name += c;
+      break;
+    }
+    }
+    break;
+  }
+
+    //------------------------------------------------------------
   case Config::State::Preview: {
     break;
   }

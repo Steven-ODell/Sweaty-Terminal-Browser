@@ -22,3 +22,5 @@ void openCurrentPath(fs::path path);
 void renamePath();
 
 void deletePath(fs::path incoming_path);
+
+void addNewPath(fs::path current_dir);

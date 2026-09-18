@@ -151,18 +151,37 @@ void renamePath() {
 }
 
 void deletePath(fs::path incoming_path) {
-  if (fs::exists(incoming_path)) {
-    try {
-      fs::remove(incoming_path);
-    } catch (const fs::filesystem_error &e) {
-      std::cout << "Error: " << e.what() << std::endl;
-      sleep(2);
+  try {
+    uintmax_t total_removed = fs::remove_all(incoming_path);
+    if (total_removed == 1) {
+      std::cout << "Folder deleted" << std::endl;
+      sleep(1);
+    } else {
+      std::cout << total_removed << " Folders/files deleted" << std::endl;
+      sleep(1);
     }
-  } else {
-    std::cout << "File doesnt exist to delete" << std::endl;
-    sleep(1);
+  } catch (const fs::filesystem_error &e) {
+    std::cout << "Error: " << e.what() << std::endl;
+    sleep(2);
   }
   E.state = Config::State::Browser;
   loadEntriesFrPath(E.full_path);
   E.del_choice = "";
+}
+
+void addNewPath(fs::path incoming_path) {
+  if (E.brand_new_name == "") {
+    std::cout << "Error: Field was empty" << std::endl;
+    sleep(1);
+  } else {
+    try {
+      std::string new_path = E.full_path.string() + "/" + E.brand_new_name;
+      fs::create_directories(new_path);
+      loadEntriesFrPath(E.full_path);
+      E.state = Config::State::Browser;
+      E.brand_new_name = "";
+    } catch (const fs::filesystem_error &e) {
+      std::cout << "Error: " << e.what() << std::endl;
+    }
+  }
 }

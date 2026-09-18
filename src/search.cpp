@@ -1,6 +1,5 @@
 #include "search.h"
 #include "path_handle.h"
-#include "term_set.h"
 #include <algorithm>
 #include <cstdint>
 #include <filesystem>
