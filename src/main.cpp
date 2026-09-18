@@ -3,8 +3,8 @@
 #include <iostream>
 
 /*
- Create a file explorer that works with ansi codes for terminal and cursor
- controls
+ # Create a file explorer that works with ansi codes for terminal and cursor
+   controls
  [x]Functional file browser
  [x]Nvim controls
 
@@ -15,9 +15,12 @@
  [x]Make a way for search for files/folders
  [x]Rename folders
  [x]Delete folders
- - Add and name a new folder
- -open into a starting folder as an argument
- the terminal for the preview line pull length
+ [x]Add and name a new folder
+ [x]Open a starting folder as an argument(basic now, bugs with it)
+ [ ]Clean up search
+ [ ]Multiple lines for search items breaks curor count
+ [ ]Preview Mode
+ [ ]Tree View
  */
 
 namespace fs = std::filesystem;
@@ -38,7 +41,16 @@ int main(int argc, char *argv[]) {
   sleep(1);
 
   if (argc > 1) {
-    E.full_path = E.full_path.string() + argv[1];
+    if (argv[1][0] != '/') {
+      E.full_path = E.full_path.string() + "/" + argv[1];
+    } else {
+      E.full_path = E.full_path.string() + argv[1];
+    }
+    if (!(fs::exists(E.full_path))) {
+      std::cout << "NOT A VALID PATH" << std::endl;
+      sleep(1);
+      E.full_path = fs::current_path().string();
+    }
   }
 
   // Set the terminal to "Raw" mode

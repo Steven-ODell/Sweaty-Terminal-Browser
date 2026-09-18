@@ -264,6 +264,7 @@ void processKeypress() {
       addNewPath(E.full_path);
       E.hidden = E.hidden_holder;
       E.cx = 1;
+      E.cur_row = 1;
       loadEntriesFrPath(E.full_path);
       E.state = Config::State::Browser;
       E.brand_new_name = "";
@@ -274,6 +275,7 @@ void processKeypress() {
     case '\x1b': {
       E.hidden = E.hidden_holder;
       E.cx = 1;
+      E.cur_row = 1;
       loadEntriesFrPath(E.full_path);
       E.state = Config::State::Browser;
       E.brand_new_name = "";
