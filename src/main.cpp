@@ -5,17 +5,18 @@
 /*
  Create a file explorer that works with ansi codes for terminal and cursor
  controls
- -Functional file browser
- -Nvim controls
- -open into a starting folder as an argument
+ [x]Functional file browser
+ [x]Nvim controls
 
- -Display files in 1 column
+ [x]Display files in 1 column
  [x]Make column have a cursor on the left side
 
- -When you select a file, check type and then open in nvim if applicable
- -Make a way for search for files/folders
- -Rename folders
- m
+ [x]When you select a file, check type and then open in nvim if applicable
+ [x]Make a way for search for files/folders
+ [x]Rename folders
+ [x]Delete folders
+ - Add and name a new folder
+ -open into a starting folder as an argument
  the terminal for the preview line pull length
  */
 

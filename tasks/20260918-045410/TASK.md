@@ -1,4 +1,4 @@
-# Add instruction line for what Keys do what
+# Create a tree view?
 
 - STATUS: OPEN
 - PRIORITY: 100

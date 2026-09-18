@@ -69,7 +69,6 @@ void refreshScreen() {
 
   if (E.state == Config::State::Browser) {
     drawRows();
-
     // Put the cursor on the correct row with E.cx
     std::string seq = "\x1b[" + std::to_string(E.cx) + ";1H";
     write(STDOUT_FILENO, seq.c_str(), seq.size());
@@ -77,12 +76,10 @@ void refreshScreen() {
   } else if (E.state == Config::State::Rename) {
     E.cx = E.screen_rows;
     E.hidden = false;
-
     drawRows();
-
     std::string line = "Rename '" + E.entries[E.cur_row - 1].path().filename().string() + "' to: " + E.new_name;
     int name_offset = E.new_name.size() + 15 + E.entries[E.cur_row - 1].path().filename().string().size();
-    // Put the cursor on the correct row with E.cx
+    // Put the cursor on the correct row with E.cx and column with offset
     line += "\x1b[" + std::to_string(E.cx) + ";" + std::to_string(name_offset) + "H";
     write(STDOUT_FILENO, line.c_str(), line.size());
 
@@ -103,7 +100,7 @@ void refreshScreen() {
     E.hidden = false;
     drawSearchRows();
     std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" + "Search for: " + E.search_in;
-    // Put the cursor on the correct row with E.cx
+    // Put the cursor on the correct row with E.cx and column with offset
     int search_offset = E.search_in.size() + 13;
     line += "\x1b[" + std::to_string(E.cx) + ";" + std::to_string(search_offset) + "H";
     write(STDOUT_FILENO, line.c_str(), line.size());
@@ -111,10 +108,8 @@ void refreshScreen() {
 
   if (E.hidden) {
     std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
-    line += "Folders are hidden";
+    line += "Folders are hidden \x1b[" + std::to_string(E.cx) + ";1H";
     write(STDOUT_FILENO, line.c_str(), line.size());
-    std::string seq = "\x1b[" + std::to_string(E.cx) + ";1H";
-    write(STDOUT_FILENO, seq.c_str(), seq.size());
   }
 }
 

@@ -1,7 +1,7 @@
 # Fix the search input so the cursor is where the user is typing
 
-- STATUS: IN_PROG 
-- PRIORITY: 100
+- STATUS: DONE 
+- PRIORITY: 0
 - TAGS:
 
 No description.
