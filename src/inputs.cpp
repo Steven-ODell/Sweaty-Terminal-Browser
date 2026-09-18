@@ -49,6 +49,7 @@ void processKeypress() {
 
     // Delete
     case 'd': {
+      E.hidden_holder = E.hidden;
       E.state = Config::State::Delete;
       break;
     }
@@ -113,6 +114,7 @@ void processKeypress() {
     }
     break;
   }
+    //------------------------------------------------------------
 
   case Config::State::Search: {
     switch (c) {
@@ -127,6 +129,8 @@ void processKeypress() {
           E.search_selector = false;
         }
       } else {
+        E.cx = 1;
+        E.window_offset = 0;
         E.search_selector = true;
         setSearchPath();
       }
@@ -188,22 +192,26 @@ void processKeypress() {
 
     break;
   }
+    //------------------------------------------------------------
 
   case Config::State::Delete: {
     switch (c) {
 
     case 'y': {
+      E.hidden = E.hidden_holder;
       deletePath(E.entries[E.cur_row - 1]);
       break;
     }
 
     case 'Y': {
+      E.hidden = E.hidden_holder;
       deletePath(E.entries[E.cur_row - 1]);
       break;
     }
 
     // Esc
     case '\x1b': {
+      E.hidden = E.hidden_holder;
       loadEntriesFrPath(E.full_path);
       E.state = Config::State::Browser;
       E.del_choice = "";
@@ -211,6 +219,7 @@ void processKeypress() {
     }
 
     case 'n': {
+      E.hidden = E.hidden_holder;
       loadEntriesFrPath(E.full_path);
       E.state = Config::State::Browser;
       E.del_choice = "";
@@ -218,6 +227,7 @@ void processKeypress() {
     }
 
     case 'N': {
+      E.hidden = E.hidden_holder;
       loadEntriesFrPath(E.full_path);
       E.state = Config::State::Browser;
       E.del_choice = "";
@@ -226,10 +236,12 @@ void processKeypress() {
     }
     break;
   }
+    //------------------------------------------------------------
 
   case Config::State::Preview: {
     break;
   }
+    //------------------------------------------------------------
 
   case Config::State::Rename: {
 
@@ -242,6 +254,7 @@ void processKeypress() {
     // Esc
     case '\x1b': {
       E.hidden = E.hidden_holder;
+      E.cx = 1;
       loadEntriesFrPath(E.full_path);
       E.state = Config::State::Browser;
       E.new_name = "";

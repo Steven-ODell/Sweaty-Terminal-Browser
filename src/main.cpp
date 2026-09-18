@@ -33,6 +33,7 @@ int main(int argc, char *argv[]) {
   setPathsForBaseSearch();
 
   std::cout << "Set " << E.all_paths.size() << " paths" << std::endl;
+  std::cout << "Skipped " << E.skipped_paths << " paths" << std::endl;
   sleep(1);
 
   if (argc > 1) {

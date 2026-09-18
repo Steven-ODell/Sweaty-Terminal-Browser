@@ -17,6 +17,7 @@ struct Config {
   int screen_cols;
   int window_offset = 0;
   int cur_row;
+  int skipped_paths;
   std::string del_choice;
   std::string new_name;
   std::string search_in;
@@ -26,7 +27,7 @@ struct Config {
   std::vector<std::filesystem::directory_entry> entries;
   enum class State { Browser, Rename, Search, Preview, Delete };
   bool search_selector;
-  bool hidden;
+  bool hidden = true;
   bool hidden_holder;
   State state;
 };

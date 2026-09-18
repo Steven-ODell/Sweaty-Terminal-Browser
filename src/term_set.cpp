@@ -68,38 +68,44 @@ void refreshScreen() {
   write(STDOUT_FILENO, die_string.c_str(), die_string.size());
 
   if (E.state == Config::State::Browser) {
-
     drawRows();
+
     // Put the cursor on the correct row with E.cx
     std::string seq = "\x1b[" + std::to_string(E.cx) + ";1H";
     write(STDOUT_FILENO, seq.c_str(), seq.size());
 
   } else if (E.state == Config::State::Rename) {
-
+    E.cx = E.screen_rows;
     E.hidden = false;
+
     drawRows();
-    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
-    line += "Rename '" + E.entries[E.cur_row - 1].path().filename().string() + "' to: " + E.new_name;
-    write(STDOUT_FILENO, line.c_str(), line.size());
+
+    std::string line = "Rename '" + E.entries[E.cur_row - 1].path().filename().string() + "' to: " + E.new_name;
+    int name_offset = E.new_name.size() + 15 + E.entries[E.cur_row - 1].path().filename().string().size();
     // Put the cursor on the correct row with E.cx
-    std::string seq = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
-    write(STDOUT_FILENO, seq.c_str(), seq.size());
+    line += "\x1b[" + std::to_string(E.cx) + ";" + std::to_string(name_offset) + "H";
+    write(STDOUT_FILENO, line.c_str(), line.size());
 
   } else if (E.state == Config::State::Delete) {
-
+    E.hidden = false;
     drawRows();
-    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
-    line += "Are you sure you want to delete '" + E.entries[E.cur_row - 1].path().filename().string() + E.new_name +
-            ": [y/n]";
+    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" + "Are you sure you want to delete '" +
+                       E.entries[E.cur_row - 1].path().filename().string() + E.new_name + ": [y/n]";
+    // Put the cursor on the correct row with E.cx
+    line += "\x1b[" + std::to_string(E.cx) + ";1H";
     write(STDOUT_FILENO, line.c_str(), line.size());
 
-  }
-
-  else if (E.state == Config::State::Search) {
+  } else if (E.state == Config::State::Search) {
+    if (!E.search_selector) {
+      E.cx = E.screen_rows;
+      E.window_offset = 0;
+    }
     E.hidden = false;
     drawSearchRows();
-    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
-    line += "Search for: " + E.search_in;
+    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" + "Search for: " + E.search_in;
+    // Put the cursor on the correct row with E.cx
+    int search_offset = E.search_in.size() + 13;
+    line += "\x1b[" + std::to_string(E.cx) + ";" + std::to_string(search_offset) + "H";
     write(STDOUT_FILENO, line.c_str(), line.size());
   }
 
@@ -107,11 +113,9 @@ void refreshScreen() {
     std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
     line += "Folders are hidden";
     write(STDOUT_FILENO, line.c_str(), line.size());
+    std::string seq = "\x1b[" + std::to_string(E.cx) + ";1H";
+    write(STDOUT_FILENO, seq.c_str(), seq.size());
   }
-
-  // Put the cursor on the correct row with E.cx
-  std::string seq = "\x1b[" + std::to_string(E.cx) + ";1H";
-  write(STDOUT_FILENO, seq.c_str(), seq.size());
 }
 
 void initExplorer() {
@@ -129,9 +133,15 @@ void initExplorer() {
 }
 
 void setPathsForBaseSearch() {
-  for (const auto &entry : fs::recursive_directory_iterator(E.base_dir)) {
-    if (entry.path().string().find("/.") != std::string::npos)
-      continue;
-    E.all_paths.push_back(entry);
+  fs::recursive_directory_iterator cur_dir(E.base_dir);
+  fs::recursive_directory_iterator done;
+  while (cur_dir != done) {
+    if (!E.hidden || (*cur_dir).path().string().find("/.") == std::string::npos) {
+      E.all_paths.push_back(*cur_dir);
+    }
+    std::error_code ec;
+    cur_dir.increment(ec);
+    if (ec)
+      E.skipped_paths++;
   }
 }
