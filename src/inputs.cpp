@@ -79,6 +79,7 @@ void processKeypress() {
     // Enter
     case '\r': {
       openCurrentPath(E.entries[E.cur_row - 1]);
+      break;
     }
 
     // Up
@@ -130,6 +131,7 @@ void processKeypress() {
         }
       } else {
         E.cx = 1;
+        E.cur_row = 1;
         E.window_offset = 0;
         E.search_selector = true;
         setSearchPath();
@@ -249,6 +251,12 @@ void processKeypress() {
     // Enter
     case '\r': {
       renamePath();
+      E.hidden = E.hidden_holder;
+      E.cx = 1;
+      loadEntriesFrPath(E.full_path);
+      E.state = Config::State::Browser;
+      E.new_name = "";
+      break;
     }
 
     // Esc

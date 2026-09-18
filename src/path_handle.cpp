@@ -47,7 +47,12 @@ void checkIfFile(fs::path path_to_check) {
     std::string EXT = path_to_check.extension();
     if (EXT == ".png" || EXT == ".jpg" || EXT == ".jpeg" || EXT == ".gif" || EXT == ".webp" || EXT == ".bmp") {
       // Open with image viewer
+      E.hidden_holder = E.hidden;
+      fs::path previous_path = path_to_check.parent_path();
       openInViewer(path_to_check);
+      E.hidden = E.hidden_holder;
+      loadEntriesFrPath(previous_path);
+      refreshScreen();
     } else if (EXT == ".o" || EXT == ".a" || EXT == ".so" || EXT == ".ko" || EXT == ".elf" || EXT == ".bin" ||
                EXT == ".exe" || EXT == ".dll" || EXT == ".dylib" || EXT == ".pyc" || EXT == ".pyo" || EXT == ".class" ||
                EXT == ".jar" || EXT == ".wasm" || EXT == ".zip" || EXT == ".tar" || EXT == ".gz" || EXT == ".bz2" ||
@@ -68,7 +73,12 @@ void checkIfFile(fs::path path_to_check) {
       sleep(1);
     } else {
       // Open Nvim to file path
+      E.hidden_holder = E.hidden;
+      fs::path previous_path = path_to_check.parent_path();
       openInEditor(path_to_check);
+      E.hidden = E.hidden_holder;
+      loadEntriesFrPath(previous_path);
+      refreshScreen();
     }
   } else {
     std::cout << "Error this file type can not be opened with an editor" << std::endl;
