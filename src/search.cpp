@@ -7,7 +7,8 @@
 
 namespace fs = std::filesystem;
 
-std::vector<std::pair<uint32_t, uint32_t>> searchCurBuffer(std::string cur_buffer) {
+std::vector<std::pair<uint32_t, uint32_t>>
+searchCurBuffer(std::string cur_buffer) {
 
   std::vector<int> sorted_array;
   fs::path home_dir;
@@ -36,7 +37,8 @@ std::vector<std::pair<uint32_t, uint32_t>> searchCurBuffer(std::string cur_buffe
     // Go through each character in the string
     for (int cur_char = 0; cur_char < path_string.size(); cur_char++) {
       // If the characters match then start sequence
-      if (query_index < cur_buffer.size() && path_string[cur_char] == (cur_buffer)[query_index]) {
+      if (query_index < cur_buffer.size() &&
+          path_string[cur_char] == (cur_buffer)[query_index]) {
         if (query_index == 0) {
           seq_start = cur_char;
         }
@@ -46,8 +48,8 @@ std::vector<std::pair<uint32_t, uint32_t>> searchCurBuffer(std::string cur_buffe
       }
     }
 
-    // If you are at the end of the input then the add the span(how long it too to get the substring)
-    // to the number to push back to
+    // If you are at the end of the input then the add the span(how long it too
+    // to get the substring) to the number to push back to
     if (query_index == cur_buffer.size()) {
       uint32_t span = seq_end - seq_start + 1;
       hits.push_back({100000 + span, (uint32_t)cur_path});
@@ -81,6 +83,9 @@ void drawSearchRows() {
       break;
     std::string buf;
     buf = "» " + E.all_paths[E.hits[index].second].path().string();
+    if (buf.size() > E.screen_cols - 2) {
+      buf = buf.substr(0, E.screen_cols - 2);
+    }
     write(STDOUT_FILENO, buf.c_str(), buf.size());
     if (i < E.screen_rows - 1) {
       write(STDOUT_FILENO, "\r\n", 2);

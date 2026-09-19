@@ -77,28 +77,37 @@ void refreshScreen() {
     E.cx = E.screen_rows;
     E.hidden = false;
     drawRows();
-    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" + "Rename '" +
-                       E.entries[E.cur_row - 1].path().filename().string() + "' to: " + E.new_name;
-    int name_offset = E.new_name.size() + 15 + E.entries[E.cur_row - 1].path().filename().string().size();
+    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" +
+                       "Rename '" +
+                       E.entries[E.cur_row - 1].path().filename().string() +
+                       "' to: " + E.new_name;
+    int name_offset =
+        E.new_name.size() + 15 +
+        E.entries[E.cur_row - 1].path().filename().string().size();
     // Put the cursor on the correct row with E.cx and column with offset
-    line += "\x1b[" + std::to_string(E.cx) + ";" + std::to_string(name_offset) + "H";
+    line += "\x1b[" + std::to_string(E.cx) + ";" + std::to_string(name_offset) +
+            "H";
     write(STDOUT_FILENO, line.c_str(), line.size());
 
   } else if (E.state == Config::State::Add) {
     E.cx = E.screen_rows;
     E.hidden = false;
     drawRows();
-    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" + "New folder name: " + E.brand_new_name;
+    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" +
+                       "New folder name: " + E.brand_new_name;
     int name_offset = E.brand_new_name.size() + 18;
     // Put the cursor on the correct row with E.cx and column with offset
-    line += "\x1b[" + std::to_string(E.screen_rows) + ";" + std::to_string(name_offset) + "H";
+    line += "\x1b[" + std::to_string(E.screen_rows) + ";" +
+            std::to_string(name_offset) + "H";
     write(STDOUT_FILENO, line.c_str(), line.size());
 
   } else if (E.state == Config::State::Delete) {
     E.hidden = false;
     drawRows();
-    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" + "Are you sure you want to delete '" +
-                       E.entries[E.cur_row - 1].path().filename().string() + E.new_name + ": [y/n]";
+    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" +
+                       "Are you sure you want to delete '" +
+                       E.entries[E.cur_row - 1].path().filename().string() +
+                       E.new_name + ": [y/n]";
     // Put the cursor on the correct row with E.cx
     line += "\x1b[" + std::to_string(E.cx) + ";1H";
     write(STDOUT_FILENO, line.c_str(), line.size());
@@ -107,14 +116,24 @@ void refreshScreen() {
     if (!E.search_selector) {
       E.cx = E.screen_rows;
       E.window_offset = 0;
+      E.hidden = false;
+      drawSearchRows();
+      std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" +
+                         "Search for: " + E.search_in;
+      // Put the cursor on the correct row with E.cx and column with offset
+      int search_offset = E.search_in.size() + 13;
+      line += "\x1b[" + std::to_string(E.cx) + ";" +
+              std::to_string(search_offset) + "H";
+      write(STDOUT_FILENO, line.c_str(), line.size());
+    } else {
+      E.hidden = false;
+      drawSearchRows();
+      std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" +
+                         "Search for: " + E.search_in;
+      // Put the cursor on the correct row and first comuln
+      line += "\x1b[" + std::to_string(E.cx) + ";1H";
+      write(STDOUT_FILENO, line.c_str(), line.size());
     }
-    E.hidden = false;
-    drawSearchRows();
-    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" + "Search for: " + E.search_in;
-    // Put the cursor on the correct row with E.cx and column with offset
-    int search_offset = E.search_in.size() + 13;
-    line += "\x1b[" + std::to_string(E.cx) + ";" + std::to_string(search_offset) + "H";
-    write(STDOUT_FILENO, line.c_str(), line.size());
   }
 
   if (E.hidden) {
@@ -142,7 +161,8 @@ void setPathsForBaseSearch() {
   fs::recursive_directory_iterator cur_dir(E.base_dir);
   fs::recursive_directory_iterator done;
   while (cur_dir != done) {
-    if (!E.hidden || (*cur_dir).path().string().find("/.") == std::string::npos) {
+    if (!E.hidden ||
+        (*cur_dir).path().string().find("/.") == std::string::npos) {
       E.all_paths.push_back(*cur_dir);
     }
     std::error_code ec;
