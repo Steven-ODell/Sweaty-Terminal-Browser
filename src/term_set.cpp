@@ -6,11 +6,10 @@
 #include <unistd.h>
 
 Config E;
-std::string die_string = "\x1b[2J\x1b[H";
+std::string move_cursor_corner = "\x1b[2J\x1b[H";
 
 void die(const char *s) {
-  write(STDOUT_FILENO, die_string.c_str(), die_string.size());
-
+  write(STDOUT_FILENO, move_cursor_corner.c_str(), move_cursor_corner.size());
   perror(s);
   exit(1);
 }
@@ -41,6 +40,9 @@ void drawRows() {
       break;
     std::string buf;
     buf = "» " + E.entries[index].path().filename().string();
+    if (buf.size() > E.screen_cols - 2) {
+      buf = buf.substr(0, E.screen_cols - 2) + "...";
+    }
     write(STDOUT_FILENO, buf.c_str(), buf.size());
     if (i < E.screen_rows - 1) {
       write(STDOUT_FILENO, "\r\n", 2);
@@ -65,7 +67,11 @@ int getWinSize(int *rows, int *cols) {
 
 void refreshScreen() {
   // Clear screen and set cursor to top corner
-  write(STDOUT_FILENO, die_string.c_str(), die_string.size());
+
+  std::string clear_string_write_path =
+      "\x1b[2J\x1b[H" + E.full_path.filename().string() + "\x1b[2;H";
+  write(STDOUT_FILENO, clear_string_write_path.c_str(),
+        clear_string_write_path.size());
 
   if (E.state == Config::State::Browser) {
     drawRows();
@@ -113,6 +119,9 @@ void refreshScreen() {
     write(STDOUT_FILENO, line.c_str(), line.size());
 
   } else if (E.state == Config::State::Search) {
+    std::string clear_string_write_path = "\x1b[2J\x1b[H";
+    write(STDOUT_FILENO, clear_string_write_path.c_str(),
+          clear_string_write_path.size());
     if (!E.search_selector) {
       E.cx = E.screen_rows;
       E.window_offset = 0;
@@ -145,7 +154,7 @@ void refreshScreen() {
 
 void initExplorer() {
   E.state = Config::State::Browser;
-  E.cx = 1;
+  E.cx = 2;
   E.hidden = true;
   E.search_selector = false;
 

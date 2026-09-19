@@ -84,7 +84,7 @@ void drawSearchRows() {
     std::string buf;
     buf = "» " + E.all_paths[E.hits[index].second].path().string();
     if (buf.size() > E.screen_cols - 2) {
-      buf = buf.substr(0, E.screen_cols - 2);
+      buf = buf.substr(0, E.screen_cols - 2) + "...";
     }
     write(STDOUT_FILENO, buf.c_str(), buf.size());
     if (i < E.screen_rows - 1) {

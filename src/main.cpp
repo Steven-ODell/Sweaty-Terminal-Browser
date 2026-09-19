@@ -17,8 +17,8 @@
  [x]Delete folders
  [x]Add and name a new folder
  [x]Open a starting folder as an argument(basic now, bugs with it)
+ [x]Multiple lines for search items breaks curor count
  [ ]Clean up search
- [ ]Multiple lines for search items breaks curor count
  [ ]Preview Mode
  [ ]Tree View
  */

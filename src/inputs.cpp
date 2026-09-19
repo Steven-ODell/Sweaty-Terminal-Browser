@@ -378,7 +378,7 @@ void moveCursorDown() {
 }
 
 void moveCursorUp() {
-  if (E.cx > 1) {
+  if (E.cx > 2) {
     E.cx--;
     E.cur_row--;
   } else if (E.window_offset > 0) {
