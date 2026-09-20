@@ -27,11 +27,12 @@ struct Config {
   std::vector<std::pair<uint32_t, uint32_t>> hits;
   struct termios orig_termios;
   std::vector<std::filesystem::directory_entry> entries;
-  enum class State { Browser, Rename, Search, Preview, Delete, Add };
+  enum class State { Browser, Rename, Search, Preview, Keys, Delete, Add };
   bool search_selector;
   bool hidden = true;
   bool hidden_holder;
   State state;
+  State previous_state;
 };
 
 extern Config E;

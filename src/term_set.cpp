@@ -34,10 +34,13 @@ void enableRawMode() {
 }
 
 void drawRows() {
+
+  // Check if hidden to check the amount of rows to draw
+  // If it is hidden you have a bottom row and top row to account for
   if (E.hidden) {
     E.rows_for_entry = E.screen_rows - 2;
   } else {
-    E.rows_for_entry = E.screen_rows - 1;
+    E.rows_for_entry = E.screen_rows - 2;
   }
   for (int i = 0; i < E.rows_for_entry; i++) {
     int index = i + E.window_offset;
@@ -140,6 +143,51 @@ void refreshScreen() {
     break;
   }
 
+  case Config::State::Keys: {
+    E.hidden = false;
+    if (E.previous_state == Config::State::Search) {
+      std::string search_keys = "\x1b[2J\x1b[HSEARCH\r\n"
+                                "\r\n"
+                                "  typing:\r\n"
+                                "    any key     add to the query\r\n"
+                                "    Backspace   delete a character\r\n"
+                                "    Enter       jump to the results\r\n"
+                                "    Esc         cancel, back to browser\r\n"
+                                "\r\n"
+                                "  picking a result:\r\n"
+                                "    j / k       down / up\r\n"
+                                "    Enter       open it\r\n"
+                                "    i / Esc     back to typing\r\n"
+                                "\r\n"
+                                "  ?             this screen\r\n"
+                                "\r\n"
+                                "  press any key to go back\r\n";
+      // Put the cursor on the correct row with E.cx
+      write(STDOUT_FILENO, search_keys.c_str(), search_keys.size());
+    } else {
+      std::string browser_keys = "\x1b[2J\x1b[HBROWSER\r\n"
+                                 "\r\n"
+                                 "  j / k         down / up\r\n"
+                                 "  l / o / Enter open folder or file\r\n"
+                                 "  h / Backspace back to parent folder\r\n"
+                                 "\r\n"
+                                 "  a             new folder\r\n"
+                                 "  r             rename\r\n"
+                                 "  d             delete\r\n"
+                                 "\r\n"
+                                 "  H             toggle hidden files\r\n"
+                                 "  s             search\r\n"
+                                 "  ?             this screen\r\n"
+                                 "\r\n"
+                                 "  q / Q / Esc   quit\r\n"
+                                 "\r\n"
+                                 "  press any key to go back\r\n";
+      // Put the cursor on the correct row with E.cx
+      write(STDOUT_FILENO, browser_keys.c_str(), browser_keys.size());
+    }
+    break;
+  }
+
   case Config::State::Search: {
     write(STDOUT_FILENO, move_cursor_corner.c_str(), move_cursor_corner.size());
     if (!E.search_selector) {
@@ -173,7 +221,12 @@ void refreshScreen() {
 
   if (E.hidden) {
     std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
-    line += "Folders are hidden \x1b[" + std::to_string(E.cx) + ";1H";
+    line += "Folders are hidden > '?' for Keys \x1b[" + std::to_string(E.cx) +
+            ";1H";
+    write(STDOUT_FILENO, line.c_str(), line.size());
+  } else {
+    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
+    line += "> '?' for Keys \x1b[" + std::to_string(E.cx) + ";1H";
     write(STDOUT_FILENO, line.c_str(), line.size());
   }
 }

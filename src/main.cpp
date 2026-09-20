@@ -22,7 +22,7 @@
  [ ]Clean up search
  [ ]Preview Mode
  [ ]Tree View
- [ ]Bug when leaving nvim you lose track of your hidden state
+ [x]Bug when leaving nvim you lose track of your hidden state
  */
 
 namespace fs = std::filesystem;

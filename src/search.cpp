@@ -64,6 +64,7 @@ void selectSearchPath() {
     E.state = Config::State::Browser;
     E.search_in = "";
     E.search_selector = false;
+    E.hidden = E.hidden_holder;
     openCurrentPath(selected_path);
   } else {
     std::cout << "This folder is empty" << std::endl;

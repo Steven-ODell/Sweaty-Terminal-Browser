@@ -107,6 +107,13 @@ void processKeypress() {
       break;
     }
 
+    case '?': {
+      E.hidden_holder = E.hidden;
+      E.previous_state = E.state;
+      E.state = Config::State::Keys;
+      break;
+    }
+
     // Esc
     case '\x1b': {
       write(STDOUT_FILENO, quit_escapes.c_str(), quit_escapes.size());
@@ -141,7 +148,6 @@ void processKeypress() {
         E.cur_row = 1;
         E.window_offset = 0;
         E.search_selector = true;
-        E.hidden = E.hidden_holder;
         setSearchPath();
       }
       break;
@@ -164,6 +170,13 @@ void processKeypress() {
         E.search_in += c;
         setSearchPath();
       }
+      break;
+    }
+
+    case '?': {
+      E.hidden_holder = E.hidden;
+      E.previous_state = E.state;
+      E.state = Config::State::Keys;
       break;
     }
 
@@ -303,6 +316,21 @@ void processKeypress() {
   case Config::State::Preview: {
     break;
   }
+
+    //------------------------------------------------------------
+  case Config::State::Keys: {
+
+    switch (c) {
+    default: {
+      E.state = E.previous_state;
+      E.hidden = E.hidden_holder;
+      loadEntriesFrPath(E.full_path);
+      break;
+    }
+    }
+
+    break;
+  }
     //------------------------------------------------------------
 
   case Config::State::Rename: {
@@ -367,7 +395,7 @@ void moveCursorDown() {
       if (E.cx < E.screen_rows - (E.screen_rows / 2)) {
         E.cx++;
         E.cur_row++;
-      } else if (E.window_offset + E.rows_for_entry < E.entries.size() + 1) {
+      } else if (E.window_offset + E.rows_for_entry < E.entries.size() + 2) {
         E.window_offset++;
         E.cur_row++;
       } else if (E.cx < E.screen_rows) {
