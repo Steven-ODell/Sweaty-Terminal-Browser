@@ -37,11 +37,7 @@ void drawRows() {
 
   // Check if hidden to check the amount of rows to draw
   // If it is hidden you have a bottom row and top row to account for
-  if (E.hidden) {
-    E.rows_for_entry = E.screen_rows - 2;
-  } else {
-    E.rows_for_entry = E.screen_rows - 2;
-  }
+  E.rows_for_entry = E.screen_rows - 2;
   for (int i = 0; i < E.rows_for_entry; i++) {
     int index = i + E.window_offset;
     if (index >= E.entries.size())
@@ -221,12 +217,12 @@ void refreshScreen() {
 
   if (E.hidden) {
     std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
-    line += "Folders are hidden > '?' for Keys \x1b[" + std::to_string(E.cx) +
-            ";1H";
+    line += "Hidden " + std::to_string(E.hidden_count) +
+            " » '?' for Keys \x1b[" + std::to_string(E.cx) + ";1H";
     write(STDOUT_FILENO, line.c_str(), line.size());
   } else {
     std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
-    line += "> '?' for Keys \x1b[" + std::to_string(E.cx) + ";1H";
+    line += "» '?' for Keys \x1b[" + std::to_string(E.cx) + ";1H";
     write(STDOUT_FILENO, line.c_str(), line.size());
   }
 }

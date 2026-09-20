@@ -17,6 +17,7 @@ struct Config {
   int screen_cols;
   int rows_for_entry;
   int window_offset = 0;
+  int hidden_count = 0;
   int cur_row;
   int skipped_paths;
   std::string del_choice;

@@ -17,9 +17,11 @@ void loadEntriesFrPath(fs::path new_path) {
     }
     E.full_path.assign(new_path);
     if (E.hidden) {
+      E.hidden_count = 0;
       for (int i = E.entries.size() - 1; i >= 0; i--) {
         if (E.entries[i].path().filename().string()[0] == '.') {
           E.entries.erase(E.entries.begin() + i);
+          E.hidden_count++;
         }
       }
     }
