@@ -10,11 +10,7 @@ namespace fs = std::filesystem;
 std::vector<std::pair<uint32_t, uint32_t>>
 searchCurBuffer(std::string cur_buffer) {
 
-  std::vector<int> sorted_array;
-  fs::path home_dir;
   std::vector<std::pair<uint32_t, uint32_t>> hits;
-
-  std::vector<uint32_t> indexes_of_sorted;
 
   // Go through each path inside the entire directory
   for (size_t cur_path = 0; cur_path < (E.all_paths.size()); cur_path++) {
@@ -78,11 +74,14 @@ void selectSearchPath() {
 
 void drawSearchRows() {
   for (int i = 0; i < E.screen_rows - 1; i++) {
+    if (E.search_in.size() < 1) {
+      break;
+    }
     int index = i + E.window_offset;
     if (index >= E.hits.size())
       break;
     std::string buf;
-    buf = "» " + E.all_paths[E.hits[index].second].path().string();
+    buf += "» " + E.all_paths[E.hits[index].second].path().string();
     if (buf.size() > E.screen_cols - 2) {
       buf = buf.substr(0, E.screen_cols - 2) + "...";
     }

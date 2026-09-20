@@ -129,18 +129,19 @@ void processKeypress() {
     // Enter
     case '\r': {
       if (E.search_selector) {
+        selectSearchPath();
+        E.search_selector = false;
+      } else {
         if (E.search_in == "") {
           std::cout << "Error: Field was empty" << std::endl;
           sleep(1);
-        } else {
-          selectSearchPath();
-          E.search_selector = false;
+          break;
         }
-      } else {
         E.cx = 1;
         E.cur_row = 1;
         E.window_offset = 0;
         E.search_selector = true;
+        E.hidden = E.hidden_holder;
         setSearchPath();
       }
       break;
@@ -263,7 +264,7 @@ void processKeypress() {
     case '\r': {
       addNewPath(E.full_path);
       E.hidden = E.hidden_holder;
-      E.cx = 1;
+      E.cx = 2;
       E.cur_row = 1;
       loadEntriesFrPath(E.full_path);
       E.state = Config::State::Browser;
@@ -274,7 +275,7 @@ void processKeypress() {
     // Esc
     case '\x1b': {
       E.hidden = E.hidden_holder;
-      E.cx = 1;
+      E.cx = 2;
       E.cur_row = 1;
       loadEntriesFrPath(E.full_path);
       E.state = Config::State::Browser;
@@ -311,7 +312,7 @@ void processKeypress() {
     case '\r': {
       renamePath();
       E.hidden = E.hidden_holder;
-      E.cx = 1;
+      E.cx = 2;
       loadEntriesFrPath(E.full_path);
       E.state = Config::State::Browser;
       E.new_name = "";
@@ -321,7 +322,7 @@ void processKeypress() {
     // Esc
     case '\x1b': {
       E.hidden = E.hidden_holder;
-      E.cx = 1;
+      E.cx = 2;
       loadEntriesFrPath(E.full_path);
       E.state = Config::State::Browser;
       E.new_name = "";
@@ -352,7 +353,7 @@ void moveCursorDown() {
       if (E.cx < E.screen_rows - (E.screen_rows / 2)) {
         E.cx++;
         E.cur_row++;
-      } else if (E.window_offset + E.screen_rows < E.entries.size() + 1) {
+      } else if (E.window_offset + E.rows_for_entry < E.entries.size() + 2) {
         E.window_offset++;
         E.cur_row++;
       } else if (E.cx < E.screen_rows) {
@@ -366,7 +367,7 @@ void moveCursorDown() {
       if (E.cx < E.screen_rows - (E.screen_rows / 2)) {
         E.cx++;
         E.cur_row++;
-      } else if (E.window_offset + E.screen_rows < E.entries.size()) {
+      } else if (E.window_offset + E.rows_for_entry < E.entries.size() + 1) {
         E.window_offset++;
         E.cur_row++;
       } else if (E.cx < E.screen_rows) {

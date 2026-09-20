@@ -1,5 +1,6 @@
 #include "term_set.h"
 #include <csignal>
+#include <cstdlib>
 #include <iostream>
 
 /*
@@ -21,6 +22,7 @@
  [ ]Clean up search
  [ ]Preview Mode
  [ ]Tree View
+ [ ]Bug when leaving nvim you lose track of your hidden state
  */
 
 namespace fs = std::filesystem;
@@ -32,6 +34,10 @@ int main(int argc, char *argv[]) {
 
   // Set the path of the folder you are in to the browser directory
   E.full_path = fs::current_path().string();
+
+  // Get the $HOME value and set it as the base_dir
+  const char *home_env = std::getenv("HOME");
+  E.base_dir = home_env;
 
   // Loop through and set the initial search array for searching later
   setPathsForBaseSearch();

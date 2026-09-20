@@ -34,17 +34,22 @@ void enableRawMode() {
 }
 
 void drawRows() {
-  for (int i = 0; i < E.screen_rows; i++) {
+  if (E.hidden) {
+    E.rows_for_entry = E.screen_rows - 2;
+  } else {
+    E.rows_for_entry = E.screen_rows - 1;
+  }
+  for (int i = 0; i < E.rows_for_entry; i++) {
     int index = i + E.window_offset;
     if (index >= E.entries.size())
       break;
-    std::string buf;
-    buf = "» " + E.entries[index].path().filename().string();
+    std::string buf = "» " + E.entries[index].path().filename().string();
     if (buf.size() > E.screen_cols - 2) {
       buf = buf.substr(0, E.screen_cols - 2) + "...";
     }
     write(STDOUT_FILENO, buf.c_str(), buf.size());
-    if (i < E.screen_rows - 1) {
+
+    if (i < E.rows_for_entry - 1) {
       write(STDOUT_FILENO, "\r\n", 2);
     }
   }
@@ -66,20 +71,31 @@ int getWinSize(int *rows, int *cols) {
 }
 
 void refreshScreen() {
-  // Clear screen and set cursor to top corner
+  // Clear screen and set cursor to top corner and then write the current path
+  std::string path_header =
+      "\x1b[2J\x1b[H" + E.full_path.filename().string() /*+
+      " E.cur_row:" + std::to_string(E.cur_row) +
+      " E.cx:" + std::to_string(E.cx) +
+      " w_o:" + std::to_string(E.window_offset) +
+      " Rows:" + std::to_string(E.screen_rows)*/
+      ;
 
-  std::string clear_string_write_path =
-      "\x1b[2J\x1b[H" + E.full_path.filename().string() + "\x1b[2;H";
-  write(STDOUT_FILENO, clear_string_write_path.c_str(),
-        clear_string_write_path.size());
+  // Set line to second row for drawRows()
+  path_header += "\x1b[2;H";
+  write(STDOUT_FILENO, path_header.c_str(), path_header.size());
 
-  if (E.state == Config::State::Browser) {
+  switch (E.state) {
+
+  case Config::State::Browser: {
     drawRows();
+
     // Put the cursor on the correct row with E.cx
     std::string seq = "\x1b[" + std::to_string(E.cx) + ";1H";
     write(STDOUT_FILENO, seq.c_str(), seq.size());
+    break;
+  }
 
-  } else if (E.state == Config::State::Rename) {
+  case Config::State::Rename: {
     E.cx = E.screen_rows;
     E.hidden = false;
     drawRows();
@@ -94,8 +110,10 @@ void refreshScreen() {
     line += "\x1b[" + std::to_string(E.cx) + ";" + std::to_string(name_offset) +
             "H";
     write(STDOUT_FILENO, line.c_str(), line.size());
+    break;
+  }
 
-  } else if (E.state == Config::State::Add) {
+  case Config::State::Add: {
     E.cx = E.screen_rows;
     E.hidden = false;
     drawRows();
@@ -106,8 +124,10 @@ void refreshScreen() {
     line += "\x1b[" + std::to_string(E.screen_rows) + ";" +
             std::to_string(name_offset) + "H";
     write(STDOUT_FILENO, line.c_str(), line.size());
+    break;
+  }
 
-  } else if (E.state == Config::State::Delete) {
+  case Config::State::Delete: {
     E.hidden = false;
     drawRows();
     std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" +
@@ -117,11 +137,11 @@ void refreshScreen() {
     // Put the cursor on the correct row with E.cx
     line += "\x1b[" + std::to_string(E.cx) + ";1H";
     write(STDOUT_FILENO, line.c_str(), line.size());
+    break;
+  }
 
-  } else if (E.state == Config::State::Search) {
-    std::string clear_string_write_path = "\x1b[2J\x1b[H";
-    write(STDOUT_FILENO, clear_string_write_path.c_str(),
-          clear_string_write_path.size());
+  case Config::State::Search: {
+    write(STDOUT_FILENO, move_cursor_corner.c_str(), move_cursor_corner.size());
     if (!E.search_selector) {
       E.cx = E.screen_rows;
       E.window_offset = 0;
@@ -143,6 +163,12 @@ void refreshScreen() {
       line += "\x1b[" + std::to_string(E.cx) + ";1H";
       write(STDOUT_FILENO, line.c_str(), line.size());
     }
+    break;
+  }
+
+  case Config::State::Preview: {
+    break;
+  }
   }
 
   if (E.hidden) {

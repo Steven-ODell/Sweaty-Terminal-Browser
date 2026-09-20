@@ -1,7 +1,7 @@
 # Add a header showing what file you are in
 
-- STATUS: OPEN
-- PRIORITY: 100
+- STATUS: DONE
+- PRIORITY: 00
 - TAGS:
 
 No description.

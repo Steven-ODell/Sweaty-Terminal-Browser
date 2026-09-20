@@ -89,9 +89,7 @@ void checkIfFile(fs::path path_to_check) {
       E.hidden_holder = E.hidden;
       fs::path previous_path = path_to_check.parent_path();
       openInEditor(path_to_check);
-      E.hidden = E.hidden_holder;
       loadEntriesFrPath(previous_path);
-      refreshScreen();
     }
   } else {
     std::cout << "Error this file type can not be opened with an editor"
@@ -119,6 +117,8 @@ void openInEditor(const fs::path &file) {
 
   enableRawMode();                            // Back to alt screen + raw
   getWinSize(&E.screen_rows, &E.screen_cols); // They may have resized
+  E.hidden = E.hidden_holder;
+  refreshScreen();
 }
 
 void openInViewer(const fs::path &file) {

@@ -1,7 +1,7 @@
 # Fix the base dir to $HOME 
 
-- STATUS: OPEN
-- PRIORITY: 70
+- STATUS: DONE 
+- PRIORITY: 00
 - TAGS:
 
 No description.
