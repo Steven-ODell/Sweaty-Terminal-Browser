@@ -19,10 +19,11 @@
  [x]Add and name a new folder
  [x]Open a starting folder as an argument(basic now, bugs with it)
  [x]Multiple lines for search items breaks curor count
+ [x]Bug when leaving nvim you lose track of your hidden state
  [ ]Clean up search
  [ ]Preview Mode
  [ ]Tree View
- [x]Bug when leaving nvim you lose track of your hidden state
+ [ ]Work on color implementations
  */
 
 namespace fs = std::filesystem;
