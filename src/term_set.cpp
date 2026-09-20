@@ -71,12 +71,12 @@ int getWinSize(int *rows, int *cols) {
 
 void refreshScreen() {
   // Clear screen and set cursor to top corner and then write the current path
-  std::string path_header =
-      "\x1b[2J\x1b[H" + E.full_path.filename().string() /*+
-      " E.cur_row:" + std::to_string(E.cur_row) +
-      " E.cx:" + std::to_string(E.cx) +
-      " w_o:" + std::to_string(E.window_offset) +
-      " Rows:" + std::to_string(E.screen_rows)*/
+  std::string path_header = "\x1b[2J\x1b[H" + E.dir_color +
+                            E.full_path.filename().string() + E.color_reset /*+
+" E.cur_row:" + std::to_string(E.cur_row) +
+" E.cx:" + std::to_string(E.cx) +
+" w_o:" + std::to_string(E.window_offset) +
+" Rows:" + std::to_string(E.screen_rows)*/
       ;
 
   // Set line to second row for drawRows()
@@ -89,7 +89,9 @@ void refreshScreen() {
     drawRows();
 
     // Put the cursor on the correct row with E.cx
-    std::string seq = "\x1b[" + std::to_string(E.cx) + ";1H";
+
+    std::string seq = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
+    seq += "'?' for Keys \x1b[" + std::to_string(E.cx) + ";1H";
     write(STDOUT_FILENO, seq.c_str(), seq.size());
     break;
   }
@@ -129,10 +131,11 @@ void refreshScreen() {
   case Config::State::Delete: {
     E.hidden = false;
     drawRows();
-    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" +
+    std::string line = "\x1b[" + std::to_string(E.screen_rows) +
+                       ";1H\x1b[31m"
                        "Are you sure you want to delete '" +
                        E.entries[E.cur_row - 1].path().filename().string() +
-                       E.new_name + ": [y/n]";
+                       E.new_name + E.color_reset + "': [y/n]";
     // Put the cursor on the correct row with E.cx
     line += "\x1b[" + std::to_string(E.cx) + ";1H";
     write(STDOUT_FILENO, line.c_str(), line.size());
@@ -217,12 +220,8 @@ void refreshScreen() {
 
   if (E.hidden) {
     std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
-    line += "Hidden " + std::to_string(E.hidden_count) +
-            " » '?' for Keys \x1b[" + std::to_string(E.cx) + ";1H";
-    write(STDOUT_FILENO, line.c_str(), line.size());
-  } else {
-    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
-    line += "» '?' for Keys \x1b[" + std::to_string(E.cx) + ";1H";
+    line += "\x1b[31mHidden " + E.color_reset + std::to_string(E.hidden_count) +
+            " | '?' for Keys \x1b[" + std::to_string(E.cx) + ";1H";
     write(STDOUT_FILENO, line.c_str(), line.size());
   }
 }

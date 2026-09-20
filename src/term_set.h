@@ -22,6 +22,8 @@ struct Config {
   int skipped_paths;
   std::string del_choice;
   std::string brand_new_name;
+  std::string dir_color = "\x1b[35m";
+  std::string color_reset = "\x1b[0m";
   std::string new_name;
   std::string search_in;
   std::filesystem::path full_path;
