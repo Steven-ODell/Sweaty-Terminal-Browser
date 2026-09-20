@@ -2,6 +2,7 @@
 #include "path_handle.h"
 #include "search.h"
 #include <filesystem>
+#include <iostream>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -252,5 +253,16 @@ void setPathsForBaseSearch() {
     cur_dir.increment(ec);
     if (ec)
       E.skipped_paths++;
+  }
+}
+
+void check_start_path() {
+  loadEntriesFrPath(E.full_path);
+  if (E.entries.size() == 0) {
+    std::cout << "Path doesnt contain anything - Loading parent path"
+              << std::endl;
+    sleep(1);
+    E.full_path = E.full_path.parent_path();
+    check_start_path();
   }
 }

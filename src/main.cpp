@@ -1,3 +1,4 @@
+#include "path_handle.h"
 #include "term_set.h"
 #include <csignal>
 #include <cstdlib>
@@ -35,6 +36,8 @@ int main(int argc, char *argv[]) {
 
   // Set the path of the folder you are in to the browser directory
   E.full_path = fs::current_path().string();
+
+  check_start_path();
 
   // Get the $HOME value and set it as the base_dir
   const char *home_env = std::getenv("HOME");

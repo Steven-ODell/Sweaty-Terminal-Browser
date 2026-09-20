@@ -57,3 +57,5 @@ void refreshScreen();
 void initExplorer();
 
 void setPathsForBaseSearch();
+
+void check_start_path();
