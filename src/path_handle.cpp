@@ -26,8 +26,9 @@ void loadEntriesFrPath(fs::path new_path) {
       }
     }
     if (E.entries.size() == 0) {
-      std::cout << "This folder contains nothing or turn off hidden"
-                << std::endl;
+      std::cout
+          << "Folder is empty or only contains hidden - Loading parent path"
+          << std::endl;
       sleep(2);
       E.full_path = E.full_path.parent_path();
       loadEntriesFrPath(E.full_path);

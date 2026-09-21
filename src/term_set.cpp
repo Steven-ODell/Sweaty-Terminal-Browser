@@ -262,7 +262,11 @@ void check_start_path() {
     std::cout << "Path doesnt contain anything - Loading parent path"
               << std::endl;
     sleep(1);
-    E.full_path = E.full_path.parent_path();
-    check_start_path();
+    if (E.full_path != E.base_dir) {
+      E.full_path = E.full_path.parent_path();
+      check_start_path();
+    } else {
+      loadEntriesFrPath(E.full_path);
+    }
   }
 }
