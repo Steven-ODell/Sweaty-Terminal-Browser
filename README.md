@@ -1,113 +1,125 @@
-# Term_File_Search
+# Sweaty-Terminal-Browser
 
-A terminal file explorer built on raw ANSI escape codes and termios, with vim
-style navigation. No ncurses. Written to understand how TUIs actually work at
-the syscall level.
+This was the first real project I had planned when I felt I had my bearings in basic C++. Written entirely by my own two hands and I would like to keep it away from AI for a while. I used AI for consulting on certain syntax I don't know but it never edited a file in this repo and should remain that way.
+This project was meant to be a real usable project that I could be proud to present to others, and I think I achieved that. I hope more people find the use in this project. Especially those that are newer to traversing the terminal.
 
-Binary target is `Cexp`. About 660 lines across `src/`.
+
+# Preview
+
+![Browsing a folder up launch (load into current directory)](previews/screenshot-2026-09-21_00-43-29.png)
+![Deleting a file/folder](previews/screenshot-2026-09-21_00-44-18.png)
+![Renaming a file/folder](previews/screenshot-2026-09-21_00-44-01.png)
+![Search Mode](previews/screenshot-2026-09-21_00-44-51.png)
+![Search Mode - 2](previews/screenshot-2026-09-21_00-45-02.png)
+![Search Mode - 3](previews/screenshot-2026-09-21_00-45-34.png)
+![Search Mode - 4](previews/screenshot-2026-09-21_00-45-24.png)
+
+
+# Design choices 
+
+- While creating this I wanted this tool to be intuitive to use coming from nvim and similar movement systems. That is why the movement resembles the vim key binds. 
+- The entire tool is made and renders entirely without using any external terminal drawing libraries. It uses "termios" for the setting up of raw mode and the handing of the key inputs. The rest is straight writing to the buffer and moving the cursor by hand and clearing it by hand.
+- The "Search" function is built off of my own "Fuzzy Search" that I attempted to write myself. It works based of finding a substring and subsequence and ranks them separately depending on which it is. This allows for the partial missing of letters but still able to find the desired file. ==Look at Search Mode - 4== I still plan on writing more proper search with gap and match measurements and hope that can be more polished than the search I have now.
+- The "Search" currently does an initial load of the entire ==$HOME== directory and recursively walks all children folders. This creates an array that holds all the paths to every single file. The thinking behind this was entirely to "optimize" the speed at which the search happens. In the future I will make this a background process that happens upon opening the tool and then the user will either be hit with a loading entries message or able to jump into search depending on the size.
+- Started as raw terminal writing and then moved to a more state based system that runs off key inputs that set a state and then refresh the screen based on the state. This is going to be refined in the future and will likely be some kind of streaming for parts. In the distant future I hope to make my own diff terminal rendering system to only render what has changed. But for now this is just a state is set by keys and then refresh screen and wait for keys. With a couple flags like ==search-selector== and ==hidden==
+
 
 ## Build
 
+Requires CMake and a C++17 compiler (for `std::filesystem`).
+
 ```bash
-cmake -S . -B out/Debug
-cmake --build out/Debug
-./out/Debug/Cexp
+git clone https://github.com/Steven-ODell/Sweaty-Terminal-Browser.git
+cd Sweaty-Terminal-Browser
+cmake -S . -B out/Release -DCMAKE_BUILD_TYPE=Release
+cmake --build out/Release -j
+./out/Release/Cexp
 ```
 
-Requires C++17 for `std::filesystem`, pinned in `CMakeLists.txt`. Takes an
-optional path argument to open into a starting folder.
+Build as Release. The search walks every path under `$HOME`, and an unoptimized
+build is noticeably slower.
 
-## Keys
+Takes an optional path argument to open into a starting folder (relative to current folder):
+
+```bash
+./out/Release/Cexp /Documents
+```
+
+To run it from anywhere, copy the binary onto your `PATH`:
+
+```bash
+cp out/Release/Cexp ~/.local/bin/
+```
+
+
+## Keybindings
+
+### Browser
 
 | Key | Action |
 |---|---|
-| `j` | Move down |
-| `k` | Move up |
-| `l` | Open folder, or open file by type |
-| `h` | Go to parent folder |
-| `Enter` | Same as `l` |
-| `Backspace` | Same as `h` |
-| `o` | Open selected entry |
+| `j` / `k` | Move down / up |
+| `l` / `o` / `Enter` | Open folder or file |
+| `h` / `Backspace` | Go to parent folder |
+| `a` | New folder (nested paths like `docs/notes` work) |
 | `r` | Rename selected entry |
-| `d` | Delete selected entry |
-| `H` | Toggle dotfiles |
-| `q` `Q` `Esc` | Quit |
-| `p` | Preview (not implemented) |
-| `s` | Search (not implemented) |
+| `d` | Delete selected entry (asks to confirm, deletes recursively) |
+| `H` | Toggle hidden files |
+| `s` | Search |
+| `?` | Show keybindings |
+| `q` / `Q` / `Esc` | Quit |
 
-Rename mode: typing appends to the new name, `Backspace` deletes a character,
-`Enter` commits, `Esc` cancels and returns to browsing.
+### Search
 
-Delete mode: `y` or `Y` confirms, `n` or `N` cancels. Deletion goes through
-`fs::remove`, so it removes a single file or an empty directory and reports a
-`filesystem_error` for anything else.
+While typing:
 
-## How files open
+| Key | Action |
+|---|---|
+| Any key | Add to query |
+| `Backspace` | Delete a character |
+| `Enter` | Jump to results |
+| `Esc` | Cancel, back to browser |
+| `?` | Show keybindings |
 
-Selecting a file checks its extension:
+While picking a result:
 
-- Images (.png, .jpg, .gif, ...) open in `imv` as a detached child, so the TUI
-  keeps running
-- A blocklist of known binary, archive, media, ROM and document formats is
-  refused outright
-- Everything else opens in `nvim`, blocking until you quit it
+| Key | Action |
+|---|---|
+| `j` / `k` | Move down / up |
+| `Enter` | Open result |
+| `i` / `Esc` | Back to typing |
 
-`SIGCHLD` is ignored in `main` so detached image viewers do not become zombies.
-Opening an empty folder prints a message and bounces you back to the parent
-rather than leaving you on a blank screen.
+### Rename / New folder
 
-## Design notes
+| Key | Action |
+|---|---|
+| Any key | Type name |
+| `Backspace` | Delete a character |
+| `Enter` | Confirm |
+| `Esc` | Cancel |
 
-The terminal is put in raw mode with `ECHO`, `ICANON`, `IEXTEN`, `ISIG`, `IXON`
-and `OPOST` cleared, and the alternate screen buffer (`\x1b[?1049h`) is entered
-so the shell scrollback is preserved on exit. `disableRawMode` is registered
-with `atexit`, so termios is restored on any normal exit path.
+### Delete confirmation
 
-State lives on a single global `Config E`. Scroll position is three fields:
-`cx` (cursor row on screen, 1 based), `window_offset` (index of the first
-visible entry), and `cur_row` (index into `entries`).
+| Key | Action |
+|---|---|
+| `y` / `Y` | Delete |
+| `n` / `N` / `Esc` | Cancel |
 
-Modes are a `State` enum on the same struct. `Browser` and `BrowserHidden` are
-the two browsing modes, differing only in whether `loadEntriesFrPath` strips
-dotfiles after reading the directory. Filtering happens at load time rather
-than at draw time, so `entries` always holds exactly what is on screen.
 
-`processKeypress` dispatches on the key first and re-checks the state inside
-every case. That works, but it means `E.new_name += c` appears seventeen times
-and the `Browser || BrowserHidden` pair appears ten. Inverting the dispatch,
-switching on state and then on key, is the planned cleanup.
 
-## Roadmap
+# Limitations
 
-1. Make dotfile hiding a flag on `Config` instead of a separate state, so it
-   survives navigation and stops doubling every browser check
-2. Invert the `processKeypress` dispatch to state-first
-3. Search: recursive from `base_dir` down, fzf style live narrowing, with its
-   own input buffer. Walk once into memory, match per keystroke against the
-   cached list
-4. Preview, as an exercise in buffer control
-5. Batch the two to four writes per frame into a single write, ideally wrapped
-   in synchronized output mode (`\x1b[?2026h` / `\x1b[?2026l`)
-
-## Known issues
-
-- No window resize handling, no `SIGWINCH` handler
-- Missing row at the bottom causes flicker. Reduced, not fixed
-- Preview and search are stubs
-- `deletePath` sets the state to `BrowserHidden` unconditionally when it
-  finishes, so any delete silently turns dotfile hiding on
-- Cancelling a delete with `n`, or a rename with `Esc`, always returns to
-  `Browser`, dropping `BrowserHidden` the other direction
-- `Esc` does nothing in delete mode, so the confirm prompt can only be answered
-  with `y` or `n`
-- `E.entries[E.cur_row - 1]` is indexed without a bounds check in five places.
-  An empty `entries` makes that out of range, and `cur_row - 1` wraps if the
-  field is ever unsigned
-- `\x1b` quits, so any arrow key quits, since they arrive as `\x1b[A` and so on
-- `deletePath` checks `fs::exists` and then calls `fs::remove` without reading
-  its return value, which is both a redundant syscall and a race
-- The parent-directory guard compares against a hardcoded `/home/sao` in
-  `Config::base_dir` rather than `$HOME`, so it does nothing on another machine
-- The path argument is concatenated onto the current directory instead of
-  joined, so absolute paths are not handled and there is no separator
+I am well aware of many limitations within the project currently. Small list of the bugs currently:
+```markdown
+- No window resize handling
+- Flicker. Reduced, not fixed
+- Preview is a stub
+- No tests implemented
 - Only one argument is read, with no flag parsing
+- cur_row and cx are fighting eachother
+- Null check on `getenv("HOME")`. Assigning `nullptr` to a `std::string` is
+  undefined; flag it when `HOME` isn't set.
+- Clean up code in general 
+- Arrow keys are taken as "esc" or "\x1b"
+```
+just to name a few. Many more are listed in the ==tasks== folder and the ==plans.md==
