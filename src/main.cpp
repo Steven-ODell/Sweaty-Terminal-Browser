@@ -1,4 +1,3 @@
-#include "path_handle.h"
 #include "term_set.h"
 #include <csignal>
 #include <cstdlib>
@@ -21,7 +20,7 @@
  [x]Open a starting folder as an argument(basic now, bugs with it)
  [x]Multiple lines for search items breaks curor count
  [x]Bug when leaving nvim you lose track of your hidden state
- [ ]Clean up search
+ [ ]Rework Search
  [ ]Preview Mode
  [ ]Tree View
  [ ]Work on color implementations
