@@ -8,7 +8,6 @@
 void loadEntriesFrPath(fs::path new_path) {
   if (fs::is_directory(new_path)) {
     E.entries.clear();
-    E.cx = 2;
     E.new_name = "";
     E.cur_row = 1;
     E.window_offset = 0;
@@ -90,7 +89,7 @@ void checkIfFile(fs::path path_to_check) {
       std::cout << "Error this file type can not be opened with an editor"
                 << std::endl;
 
-      std::string seq = "\x1b[" + std::to_string(E.cx) + ";1H";
+      std::string seq = "\x1b[" + std::to_string(E.cur_row + 1) + ";1H";
       write(STDOUT_FILENO, seq.c_str(), seq.size());
 
       sleep(1);
@@ -105,7 +104,7 @@ void checkIfFile(fs::path path_to_check) {
     std::cout << "Error this file type can not be opened with an editor"
               << std::endl;
 
-    std::string seq = "\x1b[" + std::to_string(E.cx) + ";1H";
+    std::string seq = "\x1b[" + std::to_string(E.cur_row + 1) + ";1H";
     write(STDOUT_FILENO, seq.c_str(), seq.size());
 
     sleep(1);

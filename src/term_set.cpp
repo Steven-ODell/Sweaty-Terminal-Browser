@@ -3,6 +3,7 @@
 #include "search.h"
 #include <filesystem>
 #include <iostream>
+#include <string>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -72,7 +73,7 @@ int getWinSize(int *rows, int *cols) {
 
 void refreshScreen() {
   // Clear screen and set cursor to top corner and then write the current path
-  std::string path_header = "\x1b[2J\x1b[H" + E.dir_color +
+  std::string path_header = move_cursor_corner + E.dir_color +
                             E.full_path.filename().string() + E.color_reset /*+
 " E.cur_row:" + std::to_string(E.cur_row) +
 " E.cx:" + std::to_string(E.cx) +
@@ -92,37 +93,36 @@ void refreshScreen() {
     // Put the cursor on the correct row with E.cx
 
     std::string seq = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
-    seq += "'?' for Keys \x1b[" + std::to_string(E.cx) + ";1H";
+    seq += "'?' for Keys \x1b[" +
+           std::to_string(E.cur_row - E.window_offset + 1) + ";1H";
     write(STDOUT_FILENO, seq.c_str(), seq.size());
     break;
   }
 
   case Config::State::Rename: {
-    E.cx = E.screen_rows;
     E.hidden = false;
     drawRows();
-    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" +
-                       "Rename '" +
-                       E.entries[E.cur_row - 1].path().filename().string() +
-                       "' to: " + E.new_name;
+    std::string line =
+        "\x1b[" + std::to_string(E.screen_rows) + ";1H" + "Rename '" +
+        E.entries[E.cur_row - E.window_offset - 1].path().filename().string() +
+        "' to: " + E.new_name;
     int name_offset =
         E.new_name.size() + 15 +
         E.entries[E.cur_row - 1].path().filename().string().size();
     // Put the cursor on the correct row with E.cx and column with offset
-    line += "\x1b[" + std::to_string(E.cx) + ";" + std::to_string(name_offset) +
-            "H";
+    line += "\x1b[" + std::to_string(E.screen_rows) + ";" +
+            std::to_string(name_offset) + "H";
     write(STDOUT_FILENO, line.c_str(), line.size());
     break;
   }
 
   case Config::State::Add: {
-    E.cx = E.screen_rows;
     E.hidden = false;
     drawRows();
     std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" +
                        "New folder name: " + E.brand_new_name;
     int name_offset = E.brand_new_name.size() + 18;
-    // Put the cursor on the correct row with E.cx and column with offset
+    // Put the cursor on the correct row and column with offset
     line += "\x1b[" + std::to_string(E.screen_rows) + ";" +
             std::to_string(name_offset) + "H";
     write(STDOUT_FILENO, line.c_str(), line.size());
@@ -136,9 +136,12 @@ void refreshScreen() {
                        ";1H\x1b[31m"
                        "Are you sure you want to delete '" +
                        E.entries[E.cur_row - 1].path().filename().string() +
-                       E.new_name + E.color_reset + "': [y/n]";
+                       E.color_reset + "': [y/n]";
     // Put the cursor on the correct row with E.cx
-    line += "\x1b[" + std::to_string(E.cx) + ";1H";
+    int name_offset =
+        42 + E.entries[E.cur_row - 1].path().filename().string().size();
+    line += "\x1b[" + std::to_string(E.screen_rows) + ";" +
+            std::to_string(name_offset) + "H";
     write(STDOUT_FILENO, line.c_str(), line.size());
     break;
   }
@@ -191,7 +194,6 @@ void refreshScreen() {
   case Config::State::Search: {
     write(STDOUT_FILENO, move_cursor_corner.c_str(), move_cursor_corner.size());
     if (!E.search_selector) {
-      E.cx = E.screen_rows;
       E.window_offset = 0;
       E.hidden = false;
       drawSearchRows();
@@ -199,7 +201,7 @@ void refreshScreen() {
                          "Search for: " + E.search_in;
       // Put the cursor on the correct row with E.cx and column with offset
       int search_offset = E.search_in.size() + 13;
-      line += "\x1b[" + std::to_string(E.cx) + ";" +
+      line += "\x1b[" + std::to_string(E.screen_rows) + ";" +
               std::to_string(search_offset) + "H";
       write(STDOUT_FILENO, line.c_str(), line.size());
     } else {
@@ -208,7 +210,7 @@ void refreshScreen() {
       std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" +
                          "Search for: " + E.search_in;
       // Put the cursor on the correct row and first comuln
-      line += "\x1b[" + std::to_string(E.cx) + ";1H";
+      line += "\x1b[" + std::to_string(E.cur_row - E.window_offset) + ";1H";
       write(STDOUT_FILENO, line.c_str(), line.size());
     }
     break;
@@ -222,14 +224,14 @@ void refreshScreen() {
   if (E.hidden) {
     std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H";
     line += "\x1b[31mHidden " + E.color_reset + std::to_string(E.hidden_count) +
-            " | '?' for Keys \x1b[" + std::to_string(E.cx) + ";1H";
+            " | '?' for Keys \x1b[" +
+            std::to_string(E.cur_row - E.window_offset + 1) + ";1H";
     write(STDOUT_FILENO, line.c_str(), line.size());
   }
 }
 
 void initExplorer() {
   E.state = Config::State::Browser;
-  E.cx = 2;
   E.hidden = true;
   E.search_selector = false;
 

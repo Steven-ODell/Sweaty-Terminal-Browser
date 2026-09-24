@@ -12,7 +12,6 @@ void die(const char *s);
 struct Config {
   std::string base_dir;
   std::vector<std::filesystem::directory_entry> all_paths;
-  int cx;
   int screen_rows;
   int screen_cols;
   int rows_for_entry;
