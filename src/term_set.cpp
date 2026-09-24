@@ -102,10 +102,10 @@ void refreshScreen() {
   case Config::State::Rename: {
     E.hidden = false;
     drawRows();
-    std::string line =
-        "\x1b[" + std::to_string(E.screen_rows) + ";1H" + "Rename '" +
-        E.entries[E.cur_row - E.window_offset - 1].path().filename().string() +
-        "' to: " + E.new_name;
+    std::string line = "\x1b[" + std::to_string(E.screen_rows) + ";1H" +
+                       "Rename '" +
+                       E.entries[E.cur_row - 1].path().filename().string() +
+                       "' to: " + E.new_name;
     int name_offset =
         E.new_name.size() + 15 +
         E.entries[E.cur_row - 1].path().filename().string().size();

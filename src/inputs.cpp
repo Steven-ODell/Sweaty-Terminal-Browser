@@ -334,7 +334,7 @@ void processKeypress() {
 
 void moveCursorDown() {
   if (E.cur_row < E.entries.size()) {
-    if (E.cur_row + 1 < E.screen_rows - (E.screen_rows / 2)) {
+    if (E.cur_row - E.window_offset + 1 < E.screen_rows - (E.screen_rows / 2)) {
       E.cur_row++;
     } else if (E.window_offset + E.rows_for_entry < E.entries.size() + 2) {
       E.window_offset++;

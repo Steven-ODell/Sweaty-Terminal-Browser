@@ -95,7 +95,7 @@ void drawSearchRows() {
 
 void moveCursorDownSearch() {
   if (E.cur_row + 1 < (E.hits.size())) {
-    if (E.cur_row + 1 < E.screen_rows - (E.screen_rows / 2)) {
+    if (E.cur_row - E.window_offset + 1 < E.screen_rows - (E.screen_rows / 2)) {
       E.cur_row++;
     } else if (E.window_offset + E.screen_rows < E.hits.size()) {
       E.window_offset++;
