@@ -5,12 +5,12 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-void loadEntriesFrPath(fs::path new_path) {
+void loadEntriesFrPath(fs::path new_path, Placement &Pos) {
   if (fs::is_directory(new_path)) {
     E.entries.clear();
     E.new_name = "";
-    E.cur_row = 1;
-    E.window_offset = 0;
+    Pos.cur_row = 1;
+    Pos.window_offset = 0;
     for (const auto &entry : fs::directory_iterator(new_path)) {
       E.entries.push_back(entry);
     }
@@ -30,18 +30,18 @@ void loadEntriesFrPath(fs::path new_path) {
           << std::endl;
       sleep(2);
       E.full_path = E.full_path.parent_path();
-      loadEntriesFrPath(E.full_path);
+      loadEntriesFrPath(E.full_path, Pos);
     }
   } else {
     checkIfFile(new_path);
   }
 }
 
-void loadPreviousPath(fs::path cur_path) {
+void loadPreviousPath(fs::path cur_path, Placement &Pos) {
   if (fs::exists(cur_path.parent_path())) {
     if (cur_path != E.base_dir) {
       E.full_path.assign(cur_path.parent_path());
-      loadEntriesFrPath(E.full_path);
+      loadEntriesFrPath(E.full_path, Pos);
       write(STDOUT_FILENO, "\x1b[1H", 4);
     } else {
       std::cout << "Cant go further back than the home directory" << std::endl;
@@ -50,7 +50,7 @@ void loadPreviousPath(fs::path cur_path) {
   }
 }
 
-void checkIfFile(fs::path path_to_check) {
+void checkIfFile(fs::path path_to_check, Placement &Pos) {
   if (fs::is_regular_file(path_to_check)) {
     // Check if image or binary or able to be opened in nvim
     std::string EXT = path_to_check.extension();
@@ -61,8 +61,8 @@ void checkIfFile(fs::path path_to_check) {
       fs::path previous_path = path_to_check.parent_path();
       openInViewer(path_to_check);
       E.hidden = E.hidden_holder;
-      loadEntriesFrPath(previous_path);
-      refreshScreen();
+      loadEntriesFrPath(previous_path, Pos);
+      refreshScreen(Pos);
     } else if (EXT == ".o" || EXT == ".a" || EXT == ".so" || EXT == ".ko" ||
                EXT == ".elf" || EXT == ".bin" || EXT == ".exe" ||
                EXT == ".dll" || EXT == ".dylib" || EXT == ".pyc" ||
@@ -89,7 +89,7 @@ void checkIfFile(fs::path path_to_check) {
       std::cout << "Error this file type can not be opened with an editor"
                 << std::endl;
 
-      std::string seq = "\x1b[" + std::to_string(E.cur_row + 1) + ";1H";
+      std::string seq = "\x1b[" + std::to_string(Pos.cur_row + 1) + ";1H";
       write(STDOUT_FILENO, seq.c_str(), seq.size());
 
       sleep(1);
@@ -98,13 +98,13 @@ void checkIfFile(fs::path path_to_check) {
       E.hidden_holder = E.hidden;
       fs::path previous_path = path_to_check.parent_path();
       openInEditor(path_to_check);
-      loadEntriesFrPath(previous_path);
+      loadEntriesFrPath(previous_path, Pos);
     }
   } else {
     std::cout << "Error this file type can not be opened with an editor"
               << std::endl;
 
-    std::string seq = "\x1b[" + std::to_string(E.cur_row + 1) + ";1H";
+    std::string seq = "\x1b[" + std::to_string(Pos.cur_row + 1) + ";1H";
     write(STDOUT_FILENO, seq.c_str(), seq.size());
 
     sleep(1);
@@ -112,7 +112,7 @@ void checkIfFile(fs::path path_to_check) {
 }
 
 // Open Nvim to file path
-void openInEditor(const fs::path &file) {
+void openInEditor(const fs::path &file, Placement &Pos) {
   disableRawMode(); // Restore termios + leave alt screen
 
   pid_t pid = fork();
@@ -124,10 +124,10 @@ void openInEditor(const fs::path &file) {
   }
   waitpid(pid, nullptr, 0); // Block until nvim quits
 
-  enableRawMode();                            // Back to alt screen + raw
-  getWinSize(&E.screen_rows, &E.screen_cols); // They may have resized
+  enableRawMode();                                // Back to alt screen + raw
+  getWinSize(&Pos.screen_rows, &Pos.screen_cols); // They may have resized
   E.hidden = E.hidden_holder;
-  refreshScreen();
+  refreshScreen(Pos);
 }
 
 void openInViewer(const fs::path &file) {
@@ -144,16 +144,16 @@ void openInViewer(const fs::path &file) {
   // No waitpid — imv is a Wayland window, your TUI keeps running
 }
 
-void openCurrentPath(fs::path path) {
+void openCurrentPath(fs::path path, Placement &Pos) {
   fs::path previous_path = path.parent_path();
-  loadEntriesFrPath(path);
+  loadEntriesFrPath(path, Pos);
   if (E.entries.size() > 0) {
     write(STDOUT_FILENO, "\x1b[H", 3);
   } else {
     std::cout << "This folder is empty" << std::endl;
     write(STDOUT_FILENO, "\x1b[H", 3);
     sleep(1);
-    loadEntriesFrPath(previous_path);
+    loadEntriesFrPath(previous_path, Pos);
   }
 }
 

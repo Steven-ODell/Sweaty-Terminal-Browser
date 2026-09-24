@@ -12,12 +12,9 @@ void die(const char *s);
 struct Config {
   std::string base_dir;
   std::vector<std::filesystem::directory_entry> all_paths;
-  int screen_rows;
-  int screen_cols;
   int rows_for_entry;
   int window_offset = 0;
   int hidden_count = 0;
-  int cur_row;
   int skipped_paths;
   std::string del_choice;
   std::string brand_new_name;
@@ -37,6 +34,13 @@ struct Config {
   State previous_state;
 };
 
+struct Placement {
+  int cur_row;
+  int window_offset;
+  int screen_rows;
+  int screen_cols;
+};
+
 extern Config E;
 
 void disableRawMode();
@@ -45,15 +49,13 @@ void enableRawMode();
 
 char readKey();
 
-void processKeypress();
-
-void drawRows();
+void drawRows(Placement &Pos);
 
 int getWinSize(int *rows, int *cols);
 
-void refreshScreen();
+void refreshScreen(Placement &Pos);
 
-void initExplorer();
+void initExplorer(Placement &Pos);
 
 void setPathsForBaseSearch();
 

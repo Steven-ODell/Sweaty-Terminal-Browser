@@ -1,3 +1,4 @@
+#include "inputs.h"
 #include "term_set.h"
 #include <csignal>
 #include <cstdlib>
@@ -24,11 +25,13 @@
  [ ]Preview Mode
  [ ]Tree View
  [ ]Work on color implementations
+ [ ]Rework state so that it is one write to the buffer per input
  */
 
 namespace fs = std::filesystem;
 
 int main(int argc, char *argv[]) {
+  Placement Pos;
 
   // Set up the signal for the nvim/image viewer triggers
   signal(SIGCHLD, SIG_IGN);
@@ -70,7 +73,7 @@ int main(int argc, char *argv[]) {
   // Wait for user input
   while (1) {
     refreshScreen();
-    processKeypress();
+    processKeypress(Pos);
   }
 
   return 0;
