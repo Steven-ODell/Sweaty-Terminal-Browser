@@ -5,43 +5,43 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-void loadEntriesFrPath(fs::path new_path, Placement &Pos) {
-  if (fs::is_directory(new_path)) {
-    E.entries.clear();
+void loadEntriesFrPath(Paths &paths, Placement &Pos) {
+  if (fs::is_directory(paths.full_path)) {
+    paths.entries.clear();
     E.new_name = "";
     Pos.cur_row = 1;
     Pos.window_offset = 0;
-    for (const auto &entry : fs::directory_iterator(new_path)) {
-      E.entries.push_back(entry);
+    for (const auto &entry : fs::directory_iterator(paths.full_path)) {
+      paths.entries.push_back(entry);
     }
-    E.full_path.assign(new_path);
+    paths.full_path.assign(paths.full_path);
     if (E.hidden) {
       E.hidden_count = 0;
-      for (int i = E.entries.size() - 1; i >= 0; i--) {
-        if (E.entries[i].path().filename().string()[0] == '.') {
-          E.entries.erase(E.entries.begin() + i);
+      for (int i = paths.entries.size() - 1; i >= 0; i--) {
+        if (paths.entries[i].path().filename().string()[0] == '.') {
+          paths.entries.erase(paths.entries.begin() + i);
           E.hidden_count++;
         }
       }
     }
-    if (E.entries.size() == 0) {
+    if (paths.entries.size() == 0) {
       std::cout
           << "Folder is empty or only contains hidden - Loading parent path"
           << std::endl;
       sleep(2);
-      E.full_path = E.full_path.parent_path();
-      loadEntriesFrPath(E.full_path, Pos);
+      paths.full_path = paths.full_path.parent_path();
+      loadEntriesFrPath(paths, Pos);
     }
   } else {
-    checkIfFile(new_path);
+    checkIfFile(paths.full_path, paths, Pos);
   }
 }
 
-void loadPreviousPath(fs::path cur_path, Placement &Pos) {
+void loadPreviousPath(fs::path cur_path, Paths &paths, Placement &Pos) {
   if (fs::exists(cur_path.parent_path())) {
-    if (cur_path != E.base_dir) {
-      E.full_path.assign(cur_path.parent_path());
-      loadEntriesFrPath(E.full_path, Pos);
+    if (cur_path != paths.base_dir) {
+      paths.full_path.assign(cur_path.parent_path());
+      loadEntriesFrPath(paths, Pos);
       write(STDOUT_FILENO, "\x1b[1H", 4);
     } else {
       std::cout << "Cant go further back than the home directory" << std::endl;
@@ -50,7 +50,7 @@ void loadPreviousPath(fs::path cur_path, Placement &Pos) {
   }
 }
 
-void checkIfFile(fs::path path_to_check, Placement &Pos) {
+void checkIfFile(fs::path path_to_check, Paths &paths, Placement &Pos) {
   if (fs::is_regular_file(path_to_check)) {
     // Check if image or binary or able to be opened in nvim
     std::string EXT = path_to_check.extension();
@@ -58,11 +58,12 @@ void checkIfFile(fs::path path_to_check, Placement &Pos) {
         EXT == ".webp" || EXT == ".bmp") {
       // Open with image viewer
       E.hidden_holder = E.hidden;
-      fs::path previous_path = path_to_check.parent_path();
+      paths.full_path = path_to_check.parent_path();
+
       openInViewer(path_to_check);
       E.hidden = E.hidden_holder;
-      loadEntriesFrPath(previous_path, Pos);
-      refreshScreen(Pos);
+      loadEntriesFrPath(paths, Pos);
+      refreshScreen(paths, Pos);
     } else if (EXT == ".o" || EXT == ".a" || EXT == ".so" || EXT == ".ko" ||
                EXT == ".elf" || EXT == ".bin" || EXT == ".exe" ||
                EXT == ".dll" || EXT == ".dylib" || EXT == ".pyc" ||
@@ -96,9 +97,9 @@ void checkIfFile(fs::path path_to_check, Placement &Pos) {
     } else {
       // Open Nvim to file path
       E.hidden_holder = E.hidden;
-      fs::path previous_path = path_to_check.parent_path();
-      openInEditor(path_to_check);
-      loadEntriesFrPath(previous_path, Pos);
+      paths.full_path = path_to_check.parent_path();
+      openInEditor(path_to_check, paths, Pos);
+      loadEntriesFrPath(paths, Pos);
     }
   } else {
     std::cout << "Error this file type can not be opened with an editor"
@@ -112,7 +113,7 @@ void checkIfFile(fs::path path_to_check, Placement &Pos) {
 }
 
 // Open Nvim to file path
-void openInEditor(const fs::path &file, Placement &Pos) {
+void openInEditor(const fs::path &file, Paths &paths, Placement &Pos) {
   disableRawMode(); // Restore termios + leave alt screen
 
   pid_t pid = fork();
@@ -127,7 +128,7 @@ void openInEditor(const fs::path &file, Placement &Pos) {
   enableRawMode();                                // Back to alt screen + raw
   getWinSize(&Pos.screen_rows, &Pos.screen_cols); // They may have resized
   E.hidden = E.hidden_holder;
-  refreshScreen(Pos);
+  refreshScreen(paths, Pos);
 }
 
 void openInViewer(const fs::path &file) {
@@ -144,29 +145,23 @@ void openInViewer(const fs::path &file) {
   // No waitpid — imv is a Wayland window, your TUI keeps running
 }
 
-void openCurrentPath(fs::path path, Placement &Pos) {
-  fs::path previous_path = path.parent_path();
-  loadEntriesFrPath(path, Pos);
-  if (E.entries.size() > 0) {
-    write(STDOUT_FILENO, "\x1b[H", 3);
-  } else {
-    std::cout << "This folder is empty" << std::endl;
-    write(STDOUT_FILENO, "\x1b[H", 3);
-    sleep(1);
-    loadEntriesFrPath(previous_path, Pos);
-  }
+void openCurrentPath(fs::path cur_path, Paths &paths, Placement &Pos) {
+  paths.full_path = cur_path;
+  loadEntriesFrPath(paths, Pos);
+  write(STDOUT_FILENO, "\x1b[H", 3);
 }
 
-void renamePath() {
+void renamePath(Paths &paths, Placement &Pos) {
   if (E.new_name == "") {
     std::cout << "Error: Field was empty" << std::endl;
     sleep(1);
   } else {
     try {
-      fs::rename(E.entries[E.cur_row - 1].path(),
-                 E.entries[E.cur_row - 1].path().parent_path() / E.new_name);
-      loadEntriesFrPath(E.full_path);
-      E.state = Config::State::Browser;
+      fs::rename(paths.entries[Pos.cur_row - 1].path(),
+                 paths.entries[Pos.cur_row - 1].path().parent_path() /
+                     E.new_name);
+      loadEntriesFrPath(paths, Pos);
+      E.state = State::Browser;
       E.new_name = "";
     } catch (const fs::filesystem_error &e) {
       std::cout << "Error: " << e.what() << std::endl;
@@ -174,7 +169,7 @@ void renamePath() {
   }
 }
 
-void deletePath(fs::path incoming_path) {
+void deletePath(fs::path incoming_path, Paths &paths, Placement &Pos) {
   try {
     uintmax_t total_removed = fs::remove_all(incoming_path);
     if (total_removed == 1) {
@@ -188,21 +183,21 @@ void deletePath(fs::path incoming_path) {
     std::cout << "Error: " << e.what() << std::endl;
     sleep(2);
   }
-  E.state = Config::State::Browser;
-  loadEntriesFrPath(E.full_path);
+  E.state = State::Browser;
+  loadEntriesFrPath(paths, Pos);
   E.del_choice = "";
 }
 
-void addNewPath(fs::path incoming_path) {
+void addNewPath(fs::path current_dir, Paths &paths, Placement &Pos) {
   if (E.brand_new_name == "") {
     std::cout << "Error: Field was empty" << std::endl;
     sleep(1);
   } else {
     try {
-      std::string new_path = E.full_path.string() + "/" + E.brand_new_name;
+      std::string new_path = paths.full_path.string() + "/" + E.brand_new_name;
       fs::create_directories(new_path);
-      loadEntriesFrPath(E.full_path);
-      E.state = Config::State::Browser;
+      loadEntriesFrPath(paths, Pos);
+      E.state = State::Browser;
       E.brand_new_name = "";
     } catch (const fs::filesystem_error &e) {
       std::cout << "Error: " << e.what() << std::endl;

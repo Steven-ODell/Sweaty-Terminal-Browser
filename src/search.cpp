@@ -1,5 +1,6 @@
 #include "search.h"
 #include "path_handle.h"
+#include "term_set.h"
 #include <algorithm>
 #include <cstdint>
 #include <filesystem>
@@ -8,15 +9,15 @@
 namespace fs = std::filesystem;
 
 std::vector<std::pair<uint32_t, uint32_t>>
-searchCurBuffer(std::string cur_buffer) {
+searchCurBuffer(Paths &paths, std::string cur_buffer) {
 
   std::vector<std::pair<uint32_t, uint32_t>> hits;
 
   // Go through each path inside the entire directory
-  for (size_t cur_path = 0; cur_path < (E.all_paths.size()); cur_path++) {
+  for (size_t cur_path = 0; cur_path < (paths.all_paths.size()); cur_path++) {
 
     // Make the entry you are on a string
-    std::string path_string = E.all_paths[cur_path].path().string();
+    std::string path_string = paths.all_paths[cur_path].path().string();
 
     // Search for the exact input you typed in the string
     // if found add to the hits list.
@@ -56,16 +57,19 @@ searchCurBuffer(std::string cur_buffer) {
   return hits;
 }
 
-void setSearchPath() { E.hits = searchCurBuffer(E.search_in); }
+void setSearchPath(Paths &paths) {
+  paths.hits = searchCurBuffer(paths, paths.search_in);
+}
 
-void selectSearchPath() {
-  fs::path selected_path = E.all_paths[E.hits[E.cur_row - 1].second].path();
+void selectSearchPath(Paths &paths, Placement &Pos) {
+  fs::path selected_path =
+      paths.all_paths[paths.hits[Pos.cur_row - 1].second].path();
   if (fs::exists(selected_path)) {
-    E.state = Config::State::Browser;
-    E.search_in = "";
+    E.state = State::Browser;
+    paths.search_in = "";
     E.search_selector = false;
     E.hidden = E.hidden_holder;
-    openCurrentPath(selected_path);
+    openCurrentPath(selected_path, paths, Pos);
   } else {
     std::cout << "This folder is empty" << std::endl;
     write(STDOUT_FILENO, "\x1b[H", 3);
@@ -73,44 +77,45 @@ void selectSearchPath() {
   }
 }
 
-void drawSearchRows() {
-  for (int i = 0; i < E.screen_rows - 1; i++) {
-    if (E.search_in.size() < 1) {
+void drawSearchRows(Paths &paths, Placement &Pos) {
+  for (int i = 0; i < Pos.screen_rows - 1; i++) {
+    if (paths.search_in.size() < 1) {
       break;
     }
-    int index = i + E.window_offset;
-    if (index >= E.hits.size())
+    int index = i + Pos.window_offset;
+    if (index >= paths.hits.size())
       break;
     std::string buf;
-    buf += "» " + E.all_paths[E.hits[index].second].path().string();
-    if (buf.size() > E.screen_cols - 2) {
-      buf = buf.substr(0, E.screen_cols - 2) + "...";
+    buf += "» " + paths.all_paths[paths.hits[index].second].path().string();
+    if (buf.size() > Pos.screen_cols - 2) {
+      buf = buf.substr(0, Pos.screen_cols - 2) + "...";
     }
     write(STDOUT_FILENO, buf.c_str(), buf.size());
-    if (i < E.screen_rows - 1) {
+    if (i < Pos.screen_rows - 1) {
       write(STDOUT_FILENO, "\r\n", 2);
     }
   }
 }
 
-void moveCursorDownSearch() {
-  if (E.cur_row + 1 < (E.hits.size())) {
-    if (E.cur_row - E.window_offset + 1 < E.screen_rows - (E.screen_rows / 2)) {
-      E.cur_row++;
-    } else if (E.window_offset + E.screen_rows < E.hits.size()) {
-      E.window_offset++;
-      E.cur_row++;
-    } else if (E.cur_row + 1 < E.screen_rows) {
-      E.cur_row++;
+void moveCursorDownSearch(Paths &paths, Placement &Pos) {
+  if (Pos.cur_row + 1 < (paths.hits.size())) {
+    if (Pos.cur_row - Pos.window_offset + 1 <
+        Pos.screen_rows - (Pos.screen_rows / 2)) {
+      Pos.cur_row++;
+    } else if (Pos.window_offset + Pos.screen_rows < paths.hits.size()) {
+      Pos.window_offset++;
+      Pos.cur_row++;
+    } else if (Pos.cur_row + 1 < Pos.screen_rows) {
+      Pos.cur_row++;
     }
   }
 }
 
-void moveCursorUpSearch() {
-  if (E.cur_row - E.window_offset > 1) {
-    E.cur_row--;
-  } else if (E.window_offset > 0) {
-    E.window_offset--;
-    E.cur_row--;
+void moveCursorUpSearch(Placement &Pos) {
+  if (Pos.cur_row - Pos.window_offset > 1) {
+    Pos.cur_row--;
+  } else if (Pos.window_offset > 0) {
+    Pos.window_offset--;
+    Pos.cur_row--;
   }
 }

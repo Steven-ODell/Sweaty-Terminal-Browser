@@ -9,24 +9,28 @@
 
 void die(const char *s);
 
-struct Config {
-  std::string base_dir;
+enum State { Browser, Rename, Search, Preview, Keys, Delete, Add };
+
+struct Paths {
+  int skipped_paths = 0;
   std::vector<std::filesystem::directory_entry> all_paths;
+  std::string base_dir;
+  std::string previous_path;
+  std::string search_in;
+  std::filesystem::path full_path;
+  std::vector<std::pair<uint32_t, uint32_t>> hits;
+  std::vector<std::filesystem::directory_entry> entries;
+};
+
+struct Config {
+  struct termios orig_termios;
   int rows_for_entry;
-  int window_offset = 0;
   int hidden_count = 0;
-  int skipped_paths;
   std::string del_choice;
   std::string brand_new_name;
   std::string dir_color = "\x1b[35m";
   std::string color_reset = "\x1b[0m";
   std::string new_name;
-  std::string search_in;
-  std::filesystem::path full_path;
-  std::vector<std::pair<uint32_t, uint32_t>> hits;
-  struct termios orig_termios;
-  std::vector<std::filesystem::directory_entry> entries;
-  enum class State { Browser, Rename, Search, Preview, Keys, Delete, Add };
   bool search_selector;
   bool hidden = true;
   bool hidden_holder;
@@ -36,7 +40,7 @@ struct Config {
 
 struct Placement {
   int cur_row;
-  int window_offset;
+  int window_offset = 0;
   int screen_rows;
   int screen_cols;
 };
@@ -49,14 +53,14 @@ void enableRawMode();
 
 char readKey();
 
-void drawRows(Placement &Pos);
+void drawRows(Paths &paths, Placement &Pos);
 
 int getWinSize(int *rows, int *cols);
 
-void refreshScreen(Placement &Pos);
+void refreshScreen(Paths &paths, Placement &Pos);
 
-void initExplorer(Placement &Pos);
+void initExplorer(Paths &paths, Placement &Pos);
 
-void setPathsForBaseSearch();
+void setPathsForBaseSearch(Paths &paths);
 
-void check_start_path();
+void check_start_path(Paths &paths, Placement &Pos);

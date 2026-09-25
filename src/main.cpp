@@ -31,49 +31,52 @@
 namespace fs = std::filesystem;
 
 int main(int argc, char *argv[]) {
+
+  // Create the Position and paths struct variable
   Placement Pos;
+  Paths paths;
 
   // Set up the signal for the nvim/image viewer triggers
   signal(SIGCHLD, SIG_IGN);
 
   // Set the path of the folder you are in to the browser directory
-  E.full_path = fs::current_path().string();
+  paths.full_path = fs::current_path().string();
 
-  check_start_path();
+  check_start_path(paths, Pos);
 
   // Get the $HOME value and set it as the base_dir
   const char *home_env = std::getenv("HOME");
-  E.base_dir = home_env;
+  paths.base_dir = home_env;
 
   // Loop through and set the initial search array for searching later
-  setPathsForBaseSearch();
+  setPathsForBaseSearch(paths);
 
-  std::cout << "Set " << E.all_paths.size() << " paths" << std::endl;
-  std::cout << "Skipped " << E.skipped_paths << " paths" << std::endl;
+  std::cout << "Set " << paths.all_paths.size() << " paths" << std::endl;
+  std::cout << "Skipped " << paths.skipped_paths << " paths" << std::endl;
   sleep(1);
 
   if (argc > 1) {
     if (argv[1][0] != '/') {
-      E.full_path = E.full_path.string() + "/" + argv[1];
+      paths.full_path = paths.full_path.string() + "/" + argv[1];
     } else {
-      E.full_path = E.full_path.string() + argv[1];
+      paths.full_path = paths.full_path.string() + argv[1];
     }
-    if (!(fs::exists(E.full_path))) {
+    if (!(fs::exists(paths.full_path))) {
       std::cout << "NOT A VALID PATH" << std::endl;
       sleep(1);
-      E.full_path = fs::current_path().string();
+      paths.full_path = fs::current_path().string();
     }
   }
 
   // Set the terminal to "Raw" mode
   enableRawMode();
   // Init the explorer sceen
-  initExplorer();
+  initExplorer(paths, Pos);
 
   // Wait for user input
   while (1) {
-    refreshScreen();
-    processKeypress(Pos);
+    refreshScreen(paths, Pos);
+    processKeypress(paths, Pos);
   }
 
   return 0;

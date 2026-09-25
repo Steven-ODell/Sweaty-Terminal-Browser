@@ -6,9 +6,9 @@
 #include <termios.h>
 #include <unistd.h>
 
-void processKeypress(Placement Pos);
+void processKeypress(Paths &paths, Placement &Pos);
 
 char readKey();
 
-void moveCursorDown(Placement Pos);
-void moveCursorUp(Placement Pos);
+void moveCursorDown(Paths &paths, Placement &Pos);
+void moveCursorUp(Placement &Pos);

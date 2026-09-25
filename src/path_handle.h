@@ -9,17 +9,17 @@
 
 namespace fs = std::filesystem;
 
-void loadEntriesFrPath(fs::path full_path_entries, Placement &Pos);
+void loadEntriesFrPath(Paths &paths, Placement &Pos);
 
-void checkIfFile(fs::path path_to_check, Placement &Pos);
+void loadPreviousPath(fs::path cur_path, Paths &paths, Placement &Pos);
 
-void openInEditor(const fs::path &file, Placement &Pos);
+void checkIfFile(fs::path path_to_check, Paths &paths, Placement &Pos);
+
+void openInEditor(const fs::path &file, Paths &paths, Placement &Pos);
 void openInViewer(const fs::path &file);
 
-void loadPreviousPath(fs::path cur_path, Placement &Pos);
+void openCurrentPath(fs::path cur_path, Paths &paths, Placement &Pos);
 
-void openCurrentPath(fs::path path, Placement &Pos);
-
-void renamePath();
-void deletePath(fs::path incoming_path);
-void addNewPath(fs::path current_dir);
+void renamePath(Paths &paths, Placement &Pos);
+void deletePath(fs::path incoming_path, Paths &paths, Placement &Pos);
+void addNewPath(fs::path current_dir, Paths &paths, Placement &Pos);

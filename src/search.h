@@ -7,14 +7,15 @@
 #include <unistd.h>
 #include <vector>
 
-std::vector<std::pair<uint32_t, uint32_t>> searchCurBuffer(std::string);
+std::vector<std::pair<uint32_t, uint32_t>>
+searchCurBuffer(Paths &paths, std::string cur_buffer);
 
-void setSearchPath();
+void setSearchPath(Paths &paths);
 
-void selectSearchPath();
+void selectSearchPath(Paths &paths, Placement &Pos);
 
-void drawSearchRows();
+void drawSearchRows(Paths &paths, Placement &Pos);
 
-void moveCursorDownSearch();
+void moveCursorDownSearch(Paths &paths, Placement &Pos);
 
-void moveCursorUpSearch();
+void moveCursorUpSearch(Placement &Pos);
