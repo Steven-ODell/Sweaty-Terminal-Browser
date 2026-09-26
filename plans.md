@@ -58,8 +58,7 @@ of rebuilding.
 - Make `cur_row` the index directly so the `- 1` disappears from the 11 sites
   that use it.
 - Zero-based, the clamps at `inputs.cpp:380`, `:394` and `search.cpp:97` become
-  `E.cur_row + 1 < size()`, not `size() - 1`, which wraps on an empty vector.
-- Prompt row positions currently set through `E.cx` (Rename, Delete, Add) get
+  `E.cur_row + 1 < size()`, not `size() - 1`, which wraps on an empty vector. Prompt row positions currently set through `E.cx` (Rename, Delete, Add) get
   hardcoded in those draw functions, since they're draw-time facts.
 - Browser and Search need to agree on whether Search has a header row. Right
   now they don't: `inputs.cpp:410` guards `E.cx > 2`, `search.cpp:112` guards

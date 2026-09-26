@@ -55,26 +55,8 @@ int main(int argc, char *argv[]) {
   std::cout << "Skipped " << paths.skipped_paths << " paths" << std::endl;
 
   if (argc > 1) {
-
     std::string argument = argv[1];
-    std::string home_check = argument.substr(0, paths.base_dir.size());
-    bool found_home = false;
-
-    if (home_check == paths.base_dir) {
-      paths.full_path = argument;
-      found_home = true;
-    }
-
-    if (argv[1][0] == '/' && !found_home) {
-      argv[1] = argv[1] + 1;
-      std::cout << "changed " << argv[1] - 1 << " to " << argv[1] << std::endl;
-    }
-    paths.full_path = paths.full_path / argv[1];
-
-    if (!(fs::exists(paths.full_path))) {
-      std::cout << "NOT A VALID PATH: Loading current dir..." << std::endl;
-      paths.full_path = fs::current_path().string();
-    }
+    handle_arg(argument, paths);
   }
   sleep(1);
 

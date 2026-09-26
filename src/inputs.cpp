@@ -77,7 +77,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     case 'l':
     // Enter
     case '\r': {
-      openCurrentPath(paths.entries[Pos.cur_row - 1], paths, Pos);
+      openCurrentPath(paths.entries[Pos.cur_row], paths, Pos);
       break;
     }
 
@@ -125,7 +125,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
           sleep(1);
           break;
         }
-        Pos.cur_row = 1;
+        Pos.cur_row = 0;
         Pos.window_offset = 0;
         E.search_selector = true;
         setSearchPath(paths);
@@ -213,7 +213,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     case 'y':
     case 'Y': {
       E.hidden = E.hidden_holder;
-      deletePath(paths.entries[Pos.cur_row - 1], paths, Pos);
+      deletePath(paths.entries[Pos.cur_row], paths, Pos);
       break;
     }
 
@@ -238,7 +238,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     case '\r': {
       addNewPath(paths.full_path, paths, Pos);
       E.hidden = E.hidden_holder;
-      Pos.cur_row = 1;
+      Pos.cur_row = 0;
       loadEntriesFrPath(paths, Pos);
       E.state = State::Browser;
       E.brand_new_name = "";
@@ -248,7 +248,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     // Esc
     case '\x1b': {
       E.hidden = E.hidden_holder;
-      Pos.cur_row = 1;
+      Pos.cur_row = 0;
       loadEntriesFrPath(paths, Pos);
       E.state = State::Browser;
       E.brand_new_name = "";
@@ -333,8 +333,8 @@ void processKeypress(Paths &paths, Placement &Pos) {
 }
 
 void moveCursorDown(Paths &paths, Placement &Pos) {
-  if (Pos.cur_row < paths.entries.size()) {
-    if (Pos.cur_row - Pos.window_offset + 1 <
+  if (Pos.cur_row + 1 < paths.entries.size()) {
+    if (Pos.cur_row - Pos.window_offset + 2 <
         Pos.screen_rows - (Pos.screen_rows / 2)) {
       Pos.cur_row++;
     } else if (Pos.window_offset + paths.rows_for_entry <
@@ -348,7 +348,7 @@ void moveCursorDown(Paths &paths, Placement &Pos) {
 }
 
 void moveCursorUp(Placement &Pos) {
-  if (Pos.cur_row - Pos.window_offset + 1 > 2) {
+  if (Pos.cur_row - Pos.window_offset + 2 > 2) {
     Pos.cur_row--;
   } else if (Pos.window_offset > 0) {
     Pos.window_offset--;

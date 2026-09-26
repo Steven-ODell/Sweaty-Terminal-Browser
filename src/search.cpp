@@ -63,7 +63,7 @@ void setSearchPath(Paths &paths) {
 
 void selectSearchPath(Paths &paths, Placement &Pos) {
   fs::path selected_path =
-      paths.all_paths[paths.hits[Pos.cur_row - 1].second].path();
+      paths.all_paths[paths.hits[Pos.cur_row].second].path();
   if (fs::exists(selected_path)) {
     E.state = State::Browser;
     paths.search_in = "";
@@ -77,11 +77,11 @@ void selectSearchPath(Paths &paths, Placement &Pos) {
   }
 }
 
-void drawSearchRows(Paths &paths, Placement &Pos) {
+std::string drawSearchRows(Paths &paths, Placement &Pos) {
 
   std::string full_buf;
 
-  for (int i = 0; i < Pos.screen_rows - 1; i++) {
+  for (int i = 0; i < Pos.screen_rows; i++) {
     if (paths.search_in.size() < 1) {
       break;
     }
@@ -93,18 +93,17 @@ void drawSearchRows(Paths &paths, Placement &Pos) {
     if (buf.size() > Pos.screen_cols - 2) {
       buf = buf.substr(0, Pos.screen_cols - 2) + "...";
     }
-    if (i < Pos.screen_rows - 1) {
+    if (i < Pos.screen_rows) {
       buf += "\r\n";
     }
     full_buf += buf;
   }
-
-  write(STDOUT_FILENO, full_buf.c_str(), full_buf.size());
+  return full_buf;
 }
 
 void moveCursorDownSearch(Paths &paths, Placement &Pos) {
   if (Pos.cur_row + 1 < (paths.hits.size())) {
-    if (Pos.cur_row - Pos.window_offset + 1 <
+    if (Pos.cur_row - Pos.window_offset + 2 <
         Pos.screen_rows - (Pos.screen_rows / 2)) {
       Pos.cur_row++;
     } else if (Pos.window_offset + Pos.screen_rows < paths.hits.size()) {
@@ -117,7 +116,7 @@ void moveCursorDownSearch(Paths &paths, Placement &Pos) {
 }
 
 void moveCursorUpSearch(Placement &Pos) {
-  if (Pos.cur_row - Pos.window_offset > 1) {
+  if (Pos.cur_row - Pos.window_offset > 0) {
     Pos.cur_row--;
   } else if (Pos.window_offset > 0) {
     Pos.window_offset--;

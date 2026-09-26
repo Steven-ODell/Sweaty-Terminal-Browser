@@ -53,7 +53,7 @@ void enableRawMode();
 
 char readKey();
 
-void drawRows(Paths &paths, Placement &Pos);
+std::string drawRows(Paths &paths, Placement &Pos);
 
 int getWinSize(int *rows, int *cols);
 
@@ -64,3 +64,5 @@ void initExplorer(Paths &paths, Placement &Pos);
 void setPathsForBaseSearch(Paths &paths);
 
 void check_start_path(Paths &paths, Placement &Pos);
+
+void handle_arg(std::string argument, Paths &paths);

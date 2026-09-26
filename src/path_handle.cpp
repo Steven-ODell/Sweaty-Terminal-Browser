@@ -9,7 +9,7 @@ void loadEntriesFrPath(Paths &paths, Placement &Pos) {
   if (fs::is_directory(paths.full_path)) {
     paths.entries.clear();
     E.new_name = "";
-    Pos.cur_row = 1;
+    Pos.cur_row = 0;
     Pos.window_offset = 0;
     for (const auto &entry : fs::directory_iterator(paths.full_path)) {
       paths.entries.push_back(entry);
@@ -90,7 +90,7 @@ void checkIfFile(fs::path path_to_check, Paths &paths, Placement &Pos) {
       std::cout << "Error this file type can not be opened with an editor"
                 << std::endl;
 
-      std::string seq = "\x1b[" + std::to_string(Pos.cur_row + 1) + ";1H";
+      std::string seq = "\x1b[" + std::to_string(Pos.cur_row + 2) + ";1H";
       write(STDOUT_FILENO, seq.c_str(), seq.size());
 
       sleep(1);
@@ -105,7 +105,7 @@ void checkIfFile(fs::path path_to_check, Paths &paths, Placement &Pos) {
     std::cout << "Error this file type can not be opened with an editor"
               << std::endl;
 
-    std::string seq = "\x1b[" + std::to_string(Pos.cur_row + 1) + ";1H";
+    std::string seq = "\x1b[" + std::to_string(Pos.cur_row + 2) + ";1H";
     write(STDOUT_FILENO, seq.c_str(), seq.size());
 
     sleep(1);
@@ -157,9 +157,8 @@ void renamePath(Paths &paths, Placement &Pos) {
     sleep(1);
   } else {
     try {
-      fs::rename(paths.entries[Pos.cur_row - 1].path(),
-                 paths.entries[Pos.cur_row - 1].path().parent_path() /
-                     E.new_name);
+      fs::rename(paths.entries[Pos.cur_row].path(),
+                 paths.entries[Pos.cur_row].path().parent_path() / E.new_name);
       loadEntriesFrPath(paths, Pos);
       E.state = State::Browser;
       E.new_name = "";

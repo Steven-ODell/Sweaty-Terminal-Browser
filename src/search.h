@@ -14,7 +14,7 @@ void setSearchPath(Paths &paths);
 
 void selectSearchPath(Paths &paths, Placement &Pos);
 
-void drawSearchRows(Paths &paths, Placement &Pos);
+std::string drawSearchRows(Paths &paths, Placement &Pos);
 
 void moveCursorDownSearch(Paths &paths, Placement &Pos);
 

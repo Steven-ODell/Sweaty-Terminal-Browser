@@ -35,7 +35,7 @@ void enableRawMode() {
   write(STDOUT_FILENO, "\x1b[?1049h", 8);
 }
 
-void drawRows(Paths &paths, Placement &Pos) {
+std::string drawRows(Paths &paths, Placement &Pos) {
 
   // Check if hidden to check the amount of rows to draw
   // If it is hidden you have a bottom row and top row to account for
@@ -57,7 +57,7 @@ void drawRows(Paths &paths, Placement &Pos) {
     full_buf += buf;
   }
 
-  write(STDOUT_FILENO, full_buf.c_str(), full_buf.size());
+  return full_buf;
 }
 
 int getWinSize(int *rows, int *cols) {
@@ -77,145 +77,133 @@ int getWinSize(int *rows, int *cols) {
 
 void refreshScreen(Paths &paths, Placement &Pos) {
   // Clear screen and set cursor to top corner and then write the current path
-  std::string path_header =
-      move_cursor_corner + E.dir_color + paths.full_path.filename().string() +
-      E.color_reset /*+ " paths.cur_row:" + std::to_string(Pos.cur_row) +
-      " wind_off:" + std::to_string(Pos.window_offset) +
-      " Rows:" + std::to_string(Pos.screen_rows)*/
+  std::string full_buf = move_cursor_corner + E.dir_color +
+                         paths.full_path.filename().string() + E.color_reset /*+
+                         " paths.cur_row:" + std::to_string(Pos.cur_row) +
+                         " wind_off:" + std::to_string(Pos.window_offset) +
+                         " Rows:" + std::to_string(Pos.screen_rows)*/
       ;
 
   // Set line to second row for drawRows()
-  path_header += "\x1b[2;H";
-  write(STDOUT_FILENO, path_header.c_str(), path_header.size());
+  full_buf += "\x1b[2;H";
 
   switch (E.state) {
 
   case State::Browser: {
-    drawRows(paths, Pos);
+    full_buf += drawRows(paths, Pos);
 
     // Put the cursor on the correct row with E.cx
 
-    std::string seq = "\x1b[" + std::to_string(Pos.screen_rows) + ";1H";
-    seq += "'?' for Keys \x1b[" +
-           std::to_string(Pos.cur_row - Pos.window_offset + 1) + ";1H";
-    write(STDOUT_FILENO, seq.c_str(), seq.size());
+    full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";1H";
+    full_buf += "'?' for Keys \x1b[" +
+                std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
     break;
   }
 
   case State::Rename: {
     E.hidden = false;
-    drawRows(paths, Pos);
-    std::string line =
-        "\x1b[" + std::to_string(Pos.screen_rows) + ";1H" + "Rename '" +
-        paths.entries[Pos.cur_row - 1].path().filename().string() +
-        "' to: " + E.new_name;
+    full_buf += drawRows(paths, Pos);
+    full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";1H" + "Rename '" +
+                paths.entries[Pos.cur_row].path().filename().string() +
+                "' to: " + E.new_name;
     int name_offset =
         E.new_name.size() + 15 +
-        paths.entries[Pos.cur_row - 1].path().filename().string().size();
+        paths.entries[Pos.cur_row].path().filename().string().size();
     // Put the cursor on the correct row with E.cx and column with offset
-    line += "\x1b[" + std::to_string(Pos.screen_rows) + ";" +
-            std::to_string(name_offset) + "H";
-    write(STDOUT_FILENO, line.c_str(), line.size());
+    full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";" +
+                std::to_string(name_offset) + "H";
     break;
   }
 
   case State::Add: {
     E.hidden = false;
-    drawRows(paths, Pos);
-    std::string line = "\x1b[" + std::to_string(Pos.screen_rows) + ";1H" +
-                       "New folder name: " + E.brand_new_name;
+    full_buf += drawRows(paths, Pos);
+    full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";1H" +
+                "New folder name: " + E.brand_new_name;
     int name_offset = E.brand_new_name.size() + 18;
     // Put the cursor on the correct row and column with offset
-    line += "\x1b[" + std::to_string(Pos.screen_rows) + ";" +
-            std::to_string(name_offset) + "H";
-    write(STDOUT_FILENO, line.c_str(), line.size());
+    full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";" +
+                std::to_string(name_offset) + "H";
     break;
   }
 
   case State::Delete: {
     E.hidden = false;
-    drawRows(paths, Pos);
-    std::string line =
-        "\x1b[" + std::to_string(Pos.screen_rows) +
-        ";1H\x1b[31m"
-        "Are you sure you want to delete '" +
-        paths.entries[Pos.cur_row - 1].path().filename().string() +
-        E.color_reset + "': [y/n]";
+    full_buf += drawRows(paths, Pos);
+    full_buf += "\x1b[" + std::to_string(Pos.screen_rows) +
+                ";1H\x1b[31m"
+                "Are you sure you want to delete '" +
+                paths.entries[Pos.cur_row].path().filename().string() +
+                E.color_reset + "': [y/n]";
     // Put the cursor on the correct row with
     int name_offset =
-        42 + paths.entries[Pos.cur_row - 1].path().filename().string().size();
-    line += "\x1b[" + std::to_string(Pos.screen_rows) + ";" +
-            std::to_string(name_offset) + "H";
-    write(STDOUT_FILENO, line.c_str(), line.size());
+        42 + paths.entries[Pos.cur_row].path().filename().string().size();
+    full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";" +
+                std::to_string(name_offset) + "H";
     break;
   }
 
   case State::Keys: {
     E.hidden = false;
     if (E.previous_state == State::Search) {
-      std::string search_keys = "\x1b[2J\x1b[HSEARCH\r\n"
-                                "\r\n"
-                                "  typing:\r\n"
-                                "    any key     add to the query\r\n"
-                                "    Backspace   delete a character\r\n"
-                                "    Enter       jump to the results\r\n"
-                                "    Esc         cancel, back to browser\r\n"
-                                "\r\n"
-                                "  picking a result:\r\n"
-                                "    j / k       down / up\r\n"
-                                "    Enter       open it\r\n"
-                                "    i / Esc     back to typing\r\n"
-                                "\r\n"
-                                "  ?             this screen\r\n"
-                                "\r\n"
-                                "  press any key to go back\r\n";
-      // Put the cursor on the correct row with E.cx
-      write(STDOUT_FILENO, search_keys.c_str(), search_keys.size());
+      full_buf = "\x1b[2J\x1b[HSEARCH\r\n"
+                 "\r\n"
+                 "  typing:\r\n"
+                 "    any key     add to the query\r\n"
+                 "    Backspace   delete a character\r\n"
+                 "    Enter       jump to the results\r\n"
+                 "    Esc         cancel, back to browser\r\n"
+                 "\r\n"
+                 "  picking a result:\r\n"
+                 "    j / k       down / up\r\n"
+                 "    Enter       open it\r\n"
+                 "    i / Esc     back to typing\r\n"
+                 "\r\n"
+                 "  ?             this screen\r\n"
+                 "\r\n"
+                 "  press any key to go back\r\n";
     } else {
-      std::string browser_keys = "\x1b[2J\x1b[HBROWSER\r\n"
-                                 "\r\n"
-                                 "  j / k         down / up\r\n"
-                                 "  l / o / Enter open folder or file\r\n"
-                                 "  h / Backspace back to parent folder\r\n"
-                                 "\r\n"
-                                 "  a             new folder\r\n"
-                                 "  r             rename\r\n"
-                                 "  d             delete\r\n"
-                                 "\r\n"
-                                 "  H             toggle hidden files\r\n"
-                                 "  s             search\r\n"
-                                 "  ?             this screen\r\n"
-                                 "\r\n"
-                                 "  q / Q / Esc   quit\r\n"
-                                 "\r\n"
-                                 "  press any key to go back\r\n";
-      // Put the cursor on the correct row with E.cx
-      write(STDOUT_FILENO, browser_keys.c_str(), browser_keys.size());
+      full_buf = "\x1b[2J\x1b[HBROWSER\r\n"
+                 "\r\n"
+                 "  j / k         down / up\r\n"
+                 "  l / o / Enter open folder or file\r\n"
+                 "  h / Backspace back to parent folder\r\n"
+                 "\r\n"
+                 "  a             new folder\r\n"
+                 "  r             rename\r\n"
+                 "  d             delete\r\n"
+                 "\r\n"
+                 "  H             toggle hidden files\r\n"
+                 "  s             search\r\n"
+                 "  ?             this screen\r\n"
+                 "\r\n"
+                 "  q / Q / Esc   quit\r\n"
+                 "\r\n"
+                 "  press any key to go back\r\n";
     }
     break;
   }
 
   case State::Search: {
-    write(STDOUT_FILENO, move_cursor_corner.c_str(), move_cursor_corner.size());
+    full_buf += move_cursor_corner;
     if (!E.search_selector) {
       Pos.window_offset = 0;
       E.hidden = false;
-      drawSearchRows(paths, Pos);
-      std::string line = "\x1b[" + std::to_string(Pos.screen_rows) + ";1H" +
-                         "Search for: " + paths.search_in;
+      full_buf += drawSearchRows(paths, Pos);
+      full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";1H" +
+                  "Search for: " + paths.search_in;
       // Put the cursor on the correct row with E.cx and column with offset
       int search_offset = paths.search_in.size() + 13;
-      line += "\x1b[" + std::to_string(Pos.screen_rows) + ";" +
-              std::to_string(search_offset) + "H";
-      write(STDOUT_FILENO, line.c_str(), line.size());
+      full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";" +
+                  std::to_string(search_offset) + "H";
     } else {
       E.hidden = false;
-      drawSearchRows(paths, Pos);
-      std::string line = "\x1b[" + std::to_string(Pos.screen_rows) + ";1H" +
-                         "Search for: " + paths.search_in;
+      full_buf += drawSearchRows(paths, Pos);
+      full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";1H" +
+                  "Search for: " + paths.search_in;
       // Put the cursor on the correct row and first comuln
-      line += "\x1b[" + std::to_string(Pos.cur_row - Pos.window_offset) + ";1H";
-      write(STDOUT_FILENO, line.c_str(), line.size());
+      full_buf +=
+          "\x1b[" + std::to_string(Pos.cur_row - Pos.window_offset + 1) + ";1H";
     }
     break;
   }
@@ -226,17 +214,16 @@ void refreshScreen(Paths &paths, Placement &Pos) {
   }
 
   if (E.hidden) {
-    std::string line = "\x1b[" + std::to_string(Pos.screen_rows) + ";1H";
-    line += "\x1b[31mHidden " + E.color_reset + std::to_string(E.hidden_count) +
-            " | '?' for Keys \x1b[" +
-            std::to_string(Pos.cur_row - Pos.window_offset + 1) + ";1H";
-    write(STDOUT_FILENO, line.c_str(), line.size());
+    full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";1H";
+    full_buf += "\x1b[31mHidden " + E.color_reset +
+                std::to_string(E.hidden_count) + " | '?' for Keys \x1b[" +
+                std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
   }
+  write(STDOUT_FILENO, full_buf.c_str(), full_buf.size());
 }
 
 void initExplorer(Paths &paths, Placement &Pos) {
   E.state = State::Browser;
-  Pos.cur_row = 2;
   E.hidden = true;
   E.search_selector = false;
 
@@ -275,5 +262,28 @@ void check_start_path(Paths &paths, Placement &Pos) {
     } else {
       loadEntriesFrPath(paths, Pos);
     }
+  }
+}
+
+void handle_arg(std::string argument, Paths &paths) {
+
+  std::string home_check = argument.substr(0, paths.base_dir.size());
+  bool found_home = false;
+
+  if (home_check == paths.base_dir) {
+    paths.full_path = argument;
+    found_home = true;
+  }
+
+  if (argument[0] == '/' && !found_home) {
+    std::cout << "changing " << argument;
+    argument = argument.substr(1, argument.size());
+    std::cout << " to " << argument << std::endl;
+  }
+  paths.full_path = paths.full_path / argument;
+
+  if (!(fs::exists(paths.full_path))) {
+    std::cout << "NOT A VALID PATH: Loading current dir..." << std::endl;
+    paths.full_path = fs::current_path().string();
   }
 }
