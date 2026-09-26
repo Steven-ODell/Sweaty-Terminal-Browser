@@ -3,7 +3,6 @@
 #include "search.h"
 #include "term_set.h"
 #include <filesystem>
-#include <iostream>
 
 std::string quit_escapes = "\x1b[2J\x1b[H";
 
@@ -48,6 +47,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     // Delete
     case 'd': {
       Global.hidden_holder = Global.hidden;
+      Global.hidden = false;
       Global.state = State::Delete;
       break;
     }
@@ -55,6 +55,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     // Add
     case 'a': {
       Global.hidden_holder = Global.hidden;
+      Global.hidden = false;
       Global.state = State::Add;
       break;
     }
@@ -62,12 +63,14 @@ void processKeypress(Paths &paths, Placement &Pos) {
     // Set State to Rename
     case 'r': {
       Global.hidden_holder = Global.hidden;
+      Global.hidden = false;
       Global.state = State::Rename;
       break;
     }
 
     case 's': {
       Global.hidden_holder = Global.hidden;
+      Global.hidden = false;
       Global.state = State::Search;
       break;
     }
@@ -120,9 +123,14 @@ void processKeypress(Paths &paths, Placement &Pos) {
         selectSearchPath(paths, Pos);
         Global.search_selector = false;
       } else {
+        Pos.window_offset = 0;
         if (paths.search_in == "") {
-          std::cout << "Error: Field was empty" << std::endl;
+          std::string error_mes = "» Error: Field was empty \x1b[";
+          error_mes += std::to_string(Pos.screen_rows) + ";13H";
+          write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
+
           sleep(1);
+
           break;
         }
         Pos.cur_row = 0;
@@ -133,10 +141,12 @@ void processKeypress(Paths &paths, Placement &Pos) {
       break;
     }
 
-    case 'i': {
+    case 'l': {
       if (Global.search_selector) {
+        selectSearchPath(paths, Pos);
         Global.search_selector = false;
       } else {
+        Pos.window_offset = 0;
         paths.search_in += c;
         setSearchPath(paths);
       }
@@ -147,6 +157,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
       if (Global.search_selector) {
         moveCursorUpSearch(Pos);
       } else {
+        Pos.window_offset = 0;
         paths.search_in += c;
         setSearchPath(paths);
       }
@@ -157,7 +168,6 @@ void processKeypress(Paths &paths, Placement &Pos) {
       Global.hidden_holder = Global.hidden;
       Global.previous_state = Global.state;
       Global.state = State::Keys;
-      break;
     }
 
     // Down during path selection
@@ -165,6 +175,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
       if (Global.search_selector) {
         moveCursorDownSearch(paths, Pos);
       } else {
+        Pos.window_offset = 0;
         paths.search_in += c;
         setSearchPath(paths);
       }
@@ -176,6 +187,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
       if (Global.search_selector) {
         Global.search_selector = false;
       } else {
+        Pos.window_offset = 0;
         Global.hidden = Global.hidden_holder;
         Global.search_selector = false;
         loadEntriesFrPath(paths, Pos);

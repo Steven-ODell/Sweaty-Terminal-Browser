@@ -102,7 +102,6 @@ void refreshScreen(Paths &paths, Placement &Pos) {
   }
 
   case State::Rename: {
-    Global.hidden = false;
     full_buf += drawRows(paths, Pos);
     full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";1H" + "Rename '" +
                 paths.entries[Pos.cur_row].path().filename().string() +
@@ -117,7 +116,6 @@ void refreshScreen(Paths &paths, Placement &Pos) {
   }
 
   case State::Add: {
-    Global.hidden = false;
     full_buf += drawRows(paths, Pos);
     full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";1H" +
                 "New folder name: " + Global.brand_new_name;
@@ -129,7 +127,6 @@ void refreshScreen(Paths &paths, Placement &Pos) {
   }
 
   case State::Delete: {
-    Global.hidden = false;
     full_buf += drawRows(paths, Pos);
     full_buf += "\x1b[" + std::to_string(Pos.screen_rows) +
                 ";1H\x1b[31m"
@@ -189,7 +186,6 @@ void refreshScreen(Paths &paths, Placement &Pos) {
     full_buf += move_cursor_corner;
     if (!Global.search_selector) {
       Pos.window_offset = 0;
-      Global.hidden = false;
       full_buf += drawSearchRows(paths, Pos);
       full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";1H" +
                   "Search for: " + paths.search_in;
@@ -198,7 +194,6 @@ void refreshScreen(Paths &paths, Placement &Pos) {
       full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";" +
                   std::to_string(search_offset) + "H";
     } else {
-      Global.hidden = false;
       full_buf += drawSearchRows(paths, Pos);
       full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";1H" +
                   "Search for: " + paths.search_in;

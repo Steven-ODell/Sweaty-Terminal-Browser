@@ -64,15 +64,18 @@ void setSearchPath(Paths &paths) {
 void selectSearchPath(Paths &paths, Placement &Pos) {
   fs::path selected_path =
       paths.all_paths[paths.hits[Pos.cur_row].second].path();
-  if (fs::exists(selected_path)) {
+  // This doesnt do what think I wrote it to do.Need to if dir and size()
+  if (fs::is_directory(selected_path)) {
     Global.state = State::Browser;
     paths.search_in = "";
     Global.search_selector = false;
     Global.hidden = Global.hidden_holder;
     openCurrentPath(selected_path, paths, Pos);
   } else {
-    std::cout << "This folder is empty" << std::endl;
-    write(STDOUT_FILENO, "\x1b[H", 3);
+    std::string error_mes = "» This folder is empty \x1b[";
+    error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+    write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
+
     sleep(1);
   }
 }

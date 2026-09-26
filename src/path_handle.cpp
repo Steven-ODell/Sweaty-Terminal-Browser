@@ -6,45 +6,78 @@
 #include <unistd.h>
 
 void loadEntriesFrPath(Paths &paths, Placement &Pos) {
+
   if (fs::is_directory(paths.full_path)) {
     paths.entries.clear();
     Global.new_name = "";
     Pos.cur_row = 0;
     Pos.window_offset = 0;
+
     for (const auto &entry : fs::directory_iterator(paths.full_path)) {
       paths.entries.push_back(entry);
     }
+
     paths.full_path.assign(paths.full_path);
     if (Global.hidden) {
+
       Global.hidden_count = 0;
+
       for (int i = paths.entries.size() - 1; i >= 0; i--) {
+
         if (paths.entries[i].path().filename().string()[0] == '.') {
           paths.entries.erase(paths.entries.begin() + i);
           Global.hidden_count++;
         }
       }
     }
-    if (paths.entries.size() == 0) {
-      std::cout
-          << "Folder is empty or only contains hidden - Loading parent path"
-          << std::endl;
-      sleep(2);
-      paths.full_path = paths.full_path.parent_path();
+
+    if (paths.entries.empty()) {
+
+      if (paths.full_path != paths.base_dir) {
+        std::string error_mes = "» Folder is empty or only contains hidden - "
+                                "Loading parent path \x1b[";
+        error_mes +=
+            std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+        write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
+        paths.full_path = paths.full_path.parent_path();
+
+        sleep(2);
+
+      } else {
+
+        std::string error_mes = "» Folder is empty or only contains hidden - "
+                                "Loading parent path \x1b[";
+        error_mes +=
+            std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+        write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
+        paths.full_path = paths.full_path;
+
+        sleep(2);
+      }
+
       loadEntriesFrPath(paths, Pos);
+    } else if (!fs::is_directory(paths.full_path)) {
+      checkIfFile(paths.full_path, paths, Pos);
     }
-  } else {
-    checkIfFile(paths.full_path, paths, Pos);
   }
 }
 
 void loadPreviousPath(fs::path cur_path, Paths &paths, Placement &Pos) {
+
   if (fs::exists(cur_path.parent_path())) {
+
     if (cur_path != paths.base_dir) {
+
       paths.full_path.assign(cur_path.parent_path());
       loadEntriesFrPath(paths, Pos);
-      write(STDOUT_FILENO, "\x1b[1H", 4);
+
     } else {
-      std::cout << "Cant go further back than the home directory" << std::endl;
+
+      std::string error_mes =
+          "» Cant go further back than the home directory \x1b[";
+      error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+      write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
+
       sleep(1);
     }
   }
@@ -54,6 +87,7 @@ void checkIfFile(fs::path path_to_check, Paths &paths, Placement &Pos) {
   if (fs::is_regular_file(path_to_check)) {
     // Check if image or binary or able to be opened in nvim
     std::string EXT = path_to_check.extension();
+
     if (EXT == ".png" || EXT == ".jpg" || EXT == ".jpeg" || EXT == ".gif" ||
         EXT == ".webp" || EXT == ".bmp") {
       // Open with image viewer
@@ -64,6 +98,7 @@ void checkIfFile(fs::path path_to_check, Paths &paths, Placement &Pos) {
       Global.hidden = Global.hidden_holder;
       loadEntriesFrPath(paths, Pos);
       refreshScreen(paths, Pos);
+
     } else if (EXT == ".o" || EXT == ".a" || EXT == ".so" || EXT == ".ko" ||
                EXT == ".elf" || EXT == ".bin" || EXT == ".exe" ||
                EXT == ".dll" || EXT == ".dylib" || EXT == ".pyc" ||
@@ -87,14 +122,17 @@ void checkIfFile(fs::path path_to_check, Paths &paths, Placement &Pos) {
                EXT == ".z64" || EXT == ".n64" || EXT == ".rom" ||
                EXT == ".blend" || EXT == ".stl" || EXT == ".3mf" ||
                EXT == ".fbx" || EXT == ".glb" || EXT == ".dwg") {
-      std::cout << "Error this file type can not be opened with an editor"
-                << std::endl;
 
-      std::string seq = "\x1b[" + std::to_string(Pos.cur_row + 2) + ";1H";
-      write(STDOUT_FILENO, seq.c_str(), seq.size());
+      std::string error_mes =
+          "» Error this file type can not be opened with an editor \x1b[";
+      error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+      write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
       sleep(1);
+
+      paths.full_path = path_to_check.parent_path();
     } else {
+
       // Open Nvim to file path
       Global.hidden_holder = Global.hidden;
       paths.full_path = path_to_check.parent_path();
@@ -102,11 +140,11 @@ void checkIfFile(fs::path path_to_check, Paths &paths, Placement &Pos) {
       loadEntriesFrPath(paths, Pos);
     }
   } else {
-    std::cout << "Error this file type can not be opened with an editor"
-              << std::endl;
 
-    std::string seq = "\x1b[" + std::to_string(Pos.cur_row + 2) + ";1H";
-    write(STDOUT_FILENO, seq.c_str(), seq.size());
+    std::string error_mes =
+        "» Error this file type can not be opened with an editor \x1b[";
+    error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+    write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
     sleep(1);
   }
