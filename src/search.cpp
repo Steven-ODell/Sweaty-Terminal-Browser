@@ -65,10 +65,10 @@ void selectSearchPath(Paths &paths, Placement &Pos) {
   fs::path selected_path =
       paths.all_paths[paths.hits[Pos.cur_row].second].path();
   if (fs::exists(selected_path)) {
-    E.state = State::Browser;
+    Global.state = State::Browser;
     paths.search_in = "";
-    E.search_selector = false;
-    E.hidden = E.hidden_holder;
+    Global.search_selector = false;
+    Global.hidden = Global.hidden_holder;
     openCurrentPath(selected_path, paths, Pos);
   } else {
     std::cout << "This folder is empty" << std::endl;

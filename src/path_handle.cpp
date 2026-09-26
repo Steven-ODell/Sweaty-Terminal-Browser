@@ -8,19 +8,19 @@
 void loadEntriesFrPath(Paths &paths, Placement &Pos) {
   if (fs::is_directory(paths.full_path)) {
     paths.entries.clear();
-    E.new_name = "";
+    Global.new_name = "";
     Pos.cur_row = 0;
     Pos.window_offset = 0;
     for (const auto &entry : fs::directory_iterator(paths.full_path)) {
       paths.entries.push_back(entry);
     }
     paths.full_path.assign(paths.full_path);
-    if (E.hidden) {
-      E.hidden_count = 0;
+    if (Global.hidden) {
+      Global.hidden_count = 0;
       for (int i = paths.entries.size() - 1; i >= 0; i--) {
         if (paths.entries[i].path().filename().string()[0] == '.') {
           paths.entries.erase(paths.entries.begin() + i);
-          E.hidden_count++;
+          Global.hidden_count++;
         }
       }
     }
@@ -57,11 +57,11 @@ void checkIfFile(fs::path path_to_check, Paths &paths, Placement &Pos) {
     if (EXT == ".png" || EXT == ".jpg" || EXT == ".jpeg" || EXT == ".gif" ||
         EXT == ".webp" || EXT == ".bmp") {
       // Open with image viewer
-      E.hidden_holder = E.hidden;
+      Global.hidden_holder = Global.hidden;
       paths.full_path = path_to_check.parent_path();
 
       openInViewer(path_to_check);
-      E.hidden = E.hidden_holder;
+      Global.hidden = Global.hidden_holder;
       loadEntriesFrPath(paths, Pos);
       refreshScreen(paths, Pos);
     } else if (EXT == ".o" || EXT == ".a" || EXT == ".so" || EXT == ".ko" ||
@@ -96,7 +96,7 @@ void checkIfFile(fs::path path_to_check, Paths &paths, Placement &Pos) {
       sleep(1);
     } else {
       // Open Nvim to file path
-      E.hidden_holder = E.hidden;
+      Global.hidden_holder = Global.hidden;
       paths.full_path = path_to_check.parent_path();
       openInEditor(path_to_check, paths, Pos);
       loadEntriesFrPath(paths, Pos);
@@ -127,7 +127,7 @@ void openInEditor(const fs::path &file, Paths &paths, Placement &Pos) {
 
   enableRawMode();                                // Back to alt screen + raw
   getWinSize(&Pos.screen_rows, &Pos.screen_cols); // They may have resized
-  E.hidden = E.hidden_holder;
+  Global.hidden = Global.hidden_holder;
   refreshScreen(paths, Pos);
 }
 
@@ -152,16 +152,17 @@ void openCurrentPath(fs::path cur_path, Paths &paths, Placement &Pos) {
 }
 
 void renamePath(Paths &paths, Placement &Pos) {
-  if (E.new_name == "") {
+  if (Global.new_name == "") {
     std::cout << "Error: Field was empty" << std::endl;
     sleep(1);
   } else {
     try {
       fs::rename(paths.entries[Pos.cur_row].path(),
-                 paths.entries[Pos.cur_row].path().parent_path() / E.new_name);
+                 paths.entries[Pos.cur_row].path().parent_path() /
+                     Global.new_name);
       loadEntriesFrPath(paths, Pos);
-      E.state = State::Browser;
-      E.new_name = "";
+      Global.state = State::Browser;
+      Global.new_name = "";
     } catch (const fs::filesystem_error &e) {
       std::cout << "Error: " << e.what() << std::endl;
     }
@@ -182,22 +183,23 @@ void deletePath(fs::path incoming_path, Paths &paths, Placement &Pos) {
     std::cout << "Error: " << e.what() << std::endl;
     sleep(2);
   }
-  E.state = State::Browser;
+  Global.state = State::Browser;
   loadEntriesFrPath(paths, Pos);
-  E.del_choice = "";
+  Global.del_choice = "";
 }
 
 void addNewPath(fs::path current_dir, Paths &paths, Placement &Pos) {
-  if (E.brand_new_name == "") {
+  if (Global.brand_new_name == "") {
     std::cout << "Error: Field was empty" << std::endl;
     sleep(1);
   } else {
     try {
-      std::string new_path = paths.full_path.string() + "/" + E.brand_new_name;
+      std::string new_path =
+          paths.full_path.string() + "/" + Global.brand_new_name;
       fs::create_directories(new_path);
       loadEntriesFrPath(paths, Pos);
-      E.state = State::Browser;
-      E.brand_new_name = "";
+      Global.state = State::Browser;
+      Global.brand_new_name = "";
     } catch (const fs::filesystem_error &e) {
       std::cout << "Error: " << e.what() << std::endl;
     }

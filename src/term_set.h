@@ -45,7 +45,7 @@ struct Placement {
   int screen_cols;
 };
 
-extern Config E;
+extern Config Global;
 
 void disableRawMode();
 

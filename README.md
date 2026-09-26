@@ -1,6 +1,6 @@
 # Sweaty-Terminal-Browser
 
-This was the first real project I had planned when I felt I had my bearings in basic C++. Written entirely by my own two hands and I would like to keep it away from AI for a while. I used AI for consulting on certain syntax I don't know but it never edited a file in this repo and should remain that way.
+This was the first real project I had planned when I felt I had my bearings in basic C++. Written entirely by my own two hands and I would like to keep it away from AI for a while. I used AI for consulting on certain syntax I don't know but it never edited a file in this repo and should remain that way. Only file that has any AI in it is the plan.md and that was copy and pasted from an AI conversation.
 This project was meant to be a real usable project that I could be proud to present to others, and I think I achieved that. I hope more people find the use in this project. Especially those that are newer to traversing the terminal.
 
 
@@ -17,11 +17,11 @@ This project was meant to be a real usable project that I could be proud to pres
 
 # Design choices 
 
-- While creating this I wanted this tool to be intuitive to use coming from nvim and similar movement systems. That is why the movement resembles the vim key binds. 
-- The entire tool is made and renders entirely without using any external terminal drawing libraries. It uses "termios" for the setting up of raw mode and the handing of the key inputs. The rest is straight writing to the buffer and moving the cursor by hand and clearing it by hand.
-- The "Search" function is built off of my own "Fuzzy Search" that I attempted to write myself. It works based of finding a substring and subsequence and ranks them separately depending on which it is. This allows for the partial missing of letters but still able to find the desired file. Look at Search Mode - 4 I still plan on writing more proper search with gap and match measurements and hope that can be more polished than the search I have now.
-- The "Search" currently does an initial load of the entire $HOME directory and recursively walks all folders. This creates an array that holds all the paths to every single file. The thinking behind this was entirely to "optimize" the speed at which the search happens. In the future I will make this a background process that happens upon opening the tool and then the user will either be hit with a loading entries message or able to jump into search depending on the size.
-- Started as raw terminal writing and then moved to a more state based system that runs off key inputs that set a state and then refresh the screen based on the state. This is going to be refined in the future and will likely be some kind of streaming for parts. In the distant future I hope to make my own diff terminal rendering system to only render what has changed. But for now this is just a state is set by keys and then refresh screen and wait for keys. With a couple flags like "search-selector" and "hidden"
+- I wanted this tool to be intuitive to use coming from nvim and similar movement systems. That is why the movement resembles the vim key binds. 
+- The tool is written and renders without using any external terminal drawing libraries. It uses `"termios"` for the setting up of raw mode and the handing of the key inputs. The rest is straight writing to the buffer and moving the cursor by hand and clearing it by hand.
+- The "Search" function is built off of my own `"Fuzzy Search"` that I attempted to write myself. It works based of finding a substring and subsequence and ranks them separately depending on which it is. This allows for the partial missing of letters but still able to find the desired file. Look at Search Mode - 4 I still plan on writing more proper search with gap and match measurements and hope that can be more polished than the search I have now.
+- The "Search" currently does an initial load of the entire `$HOME` directory and recursively walks all folders. This creates an array that holds all the paths to every single file. The thinking behind this was entirely to "optimize" the speed at which the search happens. In the future I will make this a background process that happens upon opening the tool and then the user will either be hit with a loading entries message or able to jump into search depending on the size.
+- Started as raw terminal writing and then moved to a more state based system that runs off key inputs that set a state and then refresh the screen based on the state. This is going to be refined in the future and will likely be some kind of streaming for parts. In the distant future I hope to make my own diff terminal rendering system to only render what has changed. But for now this is just a state is set by keys and then refresh screen and wait for keys. With a couple flags like `search-selector` and `hidden`
 
 
 ## Build
@@ -49,12 +49,22 @@ Takes an optional path argument to open into a starting folder (relative to curr
 
 ```bash
 Cexp Documents/Work
-or
+```
+
+```bash
 Cexp /Documents/Work
-or
+```
+
+```bash
 Cexp ~/Documents/Work
-or
+```
+
+```bash
 Cexp /home/user/Documents/Work
+```
+
+```bash
+cd Documents && Cexp Work
 ```
 
 ## Keybindings
@@ -117,13 +127,10 @@ While picking a result:
 I am well aware of many limitations within the project currently. Small list of the bugs currently:
 
 - No window resize handling
-- Flicker. Reduced, not fixed 100%
 - Preview is a stub
-- No tests implemented
 - Only one argument is read, with no flag parsing
-- Null check on `getenv("HOME")`. Assigning `nullptr` to a `std::string` is
-  undefined; flag it when `HOME` isn't set.
-- Clean up code in general 
+- Null check on `getenv("HOME")`. Assigning `nullptr` to a `std::string` flag it when `HOME` isn't set.
 - Arrow keys are taken as "esc" or "\x1b"
+- Clean up code in general 
 
 Just to name a few. Many more are listed in the ==tasks== folder and the ==plans.md==

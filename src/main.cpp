@@ -5,8 +5,7 @@
 #include <iostream>
 
 /*
- # Create a file explorer that works with ansi codes for terminal and cursor
-   controls
+ # Create a file explorer with ansi codes for terminal and cursor controls
  [x]Functional file browser
  [x]Nvim controls
 
@@ -42,12 +41,14 @@ int main(int argc, char *argv[]) {
   // Set the path of the folder you are in to the browser directory
   paths.full_path = fs::current_path().string();
 
+  // Make sure start path isnt empty and correct if so
   check_start_path(paths, Pos);
 
   // Get the $HOME value and set it as the base_dir
   const char *home_env = std::getenv("HOME");
   paths.base_dir = home_env;
   int base_dir_len = paths.base_dir.size();
+
   // Loop through and set the initial search array for searching later
   setPathsForBaseSearch(paths);
 
