@@ -25,7 +25,7 @@
  [ ]Preview Mode
  [ ]Tree View
  [ ]Work on color implementations
- [ ]Rework state so that it is one write to the buffer per input
+ [x]Rework state so that it is one write to the buffer per input
  */
 
 namespace fs = std::filesystem;

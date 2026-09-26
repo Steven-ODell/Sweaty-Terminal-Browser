@@ -1,6 +1,6 @@
 # Add instruction line for what Keys do what
 
-- STATUS: OPEN
+- STATUS: DONE
 - PRIORITY: 100
 - TAGS:
 

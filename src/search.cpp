@@ -81,7 +81,7 @@ std::string drawSearchRows(Paths &paths, Placement &Pos) {
 
   std::string full_buf;
 
-  for (int i = 0; i < Pos.screen_rows; i++) {
+  for (int i = 0; i < Pos.screen_rows - 1; i++) {
     if (paths.search_in.size() < 1) {
       break;
     }
@@ -93,7 +93,7 @@ std::string drawSearchRows(Paths &paths, Placement &Pos) {
     if (buf.size() > Pos.screen_cols - 2) {
       buf = buf.substr(0, Pos.screen_cols - 2) + "...";
     }
-    if (i < Pos.screen_rows) {
+    if (i < Pos.screen_rows - 2) {
       buf += "\r\n";
     }
     full_buf += buf;

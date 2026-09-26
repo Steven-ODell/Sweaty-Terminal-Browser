@@ -1,7 +1,7 @@
 # Work on the flickering
 
-- STATUS: OPEN
-- PRIORITY: 10
+- STATUS: DONE 
+- PRIORITY: 00
 - TAGS:
 
 
