@@ -13,6 +13,7 @@ enum State { Browser, Rename, Search, Preview, Keys, Delete, Add };
 
 struct Paths {
   int skipped_paths = 0;
+  int rows_for_entry;
   std::vector<std::filesystem::directory_entry> all_paths;
   std::string base_dir;
   std::string previous_path;
@@ -24,7 +25,6 @@ struct Paths {
 
 struct Config {
   struct termios orig_termios;
-  int rows_for_entry;
   int hidden_count = 0;
   std::string del_choice;
   std::string brand_new_name;

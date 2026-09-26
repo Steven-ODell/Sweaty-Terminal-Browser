@@ -78,6 +78,9 @@ void selectSearchPath(Paths &paths, Placement &Pos) {
 }
 
 void drawSearchRows(Paths &paths, Placement &Pos) {
+
+  std::string full_buf;
+
   for (int i = 0; i < Pos.screen_rows - 1; i++) {
     if (paths.search_in.size() < 1) {
       break;
@@ -90,11 +93,13 @@ void drawSearchRows(Paths &paths, Placement &Pos) {
     if (buf.size() > Pos.screen_cols - 2) {
       buf = buf.substr(0, Pos.screen_cols - 2) + "...";
     }
-    write(STDOUT_FILENO, buf.c_str(), buf.size());
     if (i < Pos.screen_rows - 1) {
-      write(STDOUT_FILENO, "\r\n", 2);
+      buf += "\r\n";
     }
+    full_buf += buf;
   }
+
+  write(STDOUT_FILENO, full_buf.c_str(), full_buf.size());
 }
 
 void moveCursorDownSearch(Paths &paths, Placement &Pos) {

@@ -32,7 +32,7 @@ namespace fs = std::filesystem;
 
 int main(int argc, char *argv[]) {
 
-  // Create the Position and paths struct variable
+  // construct the pos and paths struct variable
   Placement Pos;
   Paths paths;
 
@@ -47,26 +47,36 @@ int main(int argc, char *argv[]) {
   // Get the $HOME value and set it as the base_dir
   const char *home_env = std::getenv("HOME");
   paths.base_dir = home_env;
-
+  int base_dir_len = paths.base_dir.size();
   // Loop through and set the initial search array for searching later
   setPathsForBaseSearch(paths);
 
   std::cout << "Set " << paths.all_paths.size() << " paths" << std::endl;
   std::cout << "Skipped " << paths.skipped_paths << " paths" << std::endl;
-  sleep(1);
 
   if (argc > 1) {
-    if (argv[1][0] != '/') {
-      paths.full_path = paths.full_path.string() + "/" + argv[1];
-    } else {
-      paths.full_path = paths.full_path.string() + argv[1];
+
+    std::string argument = argv[1];
+    std::string home_check = argument.substr(0, paths.base_dir.size());
+    bool found_home = false;
+
+    if (home_check == paths.base_dir) {
+      paths.full_path = argument;
+      found_home = true;
     }
+
+    if (argv[1][0] == '/' && !found_home) {
+      argv[1] = argv[1] + 1;
+      std::cout << "changed " << argv[1] - 1 << " to " << argv[1] << std::endl;
+    }
+    paths.full_path = paths.full_path / argv[1];
+
     if (!(fs::exists(paths.full_path))) {
-      std::cout << "NOT A VALID PATH" << std::endl;
-      sleep(1);
+      std::cout << "NOT A VALID PATH: Loading current dir..." << std::endl;
       paths.full_path = fs::current_path().string();
     }
   }
+  sleep(1);
 
   // Set the terminal to "Raw" mode
   enableRawMode();

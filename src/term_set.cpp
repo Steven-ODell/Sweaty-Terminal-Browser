@@ -39,8 +39,11 @@ void drawRows(Paths &paths, Placement &Pos) {
 
   // Check if hidden to check the amount of rows to draw
   // If it is hidden you have a bottom row and top row to account for
-  E.rows_for_entry = Pos.screen_rows - 2;
-  for (int i = 0; i < E.rows_for_entry; i++) {
+  paths.rows_for_entry = Pos.screen_rows - 2;
+
+  std::string full_buf;
+
+  for (int i = 0; i < paths.rows_for_entry; i++) {
     int index = i + Pos.window_offset;
     if (index >= paths.entries.size())
       break;
@@ -48,12 +51,13 @@ void drawRows(Paths &paths, Placement &Pos) {
     if (buf.size() > Pos.screen_cols - 2) {
       buf = buf.substr(0, Pos.screen_cols - 2) + "...";
     }
-    write(STDOUT_FILENO, buf.c_str(), buf.size());
-
-    if (i < E.rows_for_entry - 1) {
-      write(STDOUT_FILENO, "\r\n", 2);
+    if (i < paths.rows_for_entry - 1) {
+      buf += "\r\n";
     }
+    full_buf += buf;
   }
+
+  write(STDOUT_FILENO, full_buf.c_str(), full_buf.size());
 }
 
 int getWinSize(int *rows, int *cols) {
@@ -73,13 +77,11 @@ int getWinSize(int *rows, int *cols) {
 
 void refreshScreen(Paths &paths, Placement &Pos) {
   // Clear screen and set cursor to top corner and then write the current path
-  std::string path_header = move_cursor_corner + E.dir_color +
-                            paths.full_path.filename().string() +
-                            E.color_reset /*+
-" E.cur_row:" + std::to_string(E.cur_row) +
-" E.cx:" + std::to_string(E.cx) +
-" w_o:" + std::to_string(E.window_offset) +
-" Rows:" + std::to_string(E.screen_rows)*/
+  std::string path_header =
+      move_cursor_corner + E.dir_color + paths.full_path.filename().string() +
+      E.color_reset /*+ " paths.cur_row:" + std::to_string(Pos.cur_row) +
+      " wind_off:" + std::to_string(Pos.window_offset) +
+      " Rows:" + std::to_string(Pos.screen_rows)*/
       ;
 
   // Set line to second row for drawRows()
@@ -139,7 +141,7 @@ void refreshScreen(Paths &paths, Placement &Pos) {
         "Are you sure you want to delete '" +
         paths.entries[Pos.cur_row - 1].path().filename().string() +
         E.color_reset + "': [y/n]";
-    // Put the cursor on the correct row with E.cx
+    // Put the cursor on the correct row with
     int name_offset =
         42 + paths.entries[Pos.cur_row - 1].path().filename().string().size();
     line += "\x1b[" + std::to_string(Pos.screen_rows) + ";" +

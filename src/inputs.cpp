@@ -337,7 +337,7 @@ void moveCursorDown(Paths &paths, Placement &Pos) {
     if (Pos.cur_row - Pos.window_offset + 1 <
         Pos.screen_rows - (Pos.screen_rows / 2)) {
       Pos.cur_row++;
-    } else if (Pos.window_offset + E.rows_for_entry <
+    } else if (Pos.window_offset + paths.rows_for_entry <
                paths.entries.size() + 2) {
       Pos.window_offset++;
       Pos.cur_row++;
