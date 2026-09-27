@@ -47,6 +47,8 @@ struct Placement {
 
 extern Config Global;
 
+void initProgram(Paths &paths, Placement &Pos);
+
 void disableRawMode();
 
 void enableRawMode();
@@ -65,4 +67,4 @@ void setPathsForBaseSearch(Paths &paths);
 
 void check_start_path(Paths &paths, Placement &Pos);
 
-void handle_arg(std::string argument, Paths &paths);
+void handle_arg(std::string &argument, Paths &paths);

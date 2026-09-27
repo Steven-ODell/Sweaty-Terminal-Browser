@@ -11,9 +11,9 @@ namespace fs = std::filesystem;
 
 void loadEntriesFrPath(Paths &paths, Placement &Pos);
 
-void loadPreviousPath(fs::path cur_path, Paths &paths, Placement &Pos);
+void loadPreviousPath(Paths &paths, Placement &Pos);
 
-void checkIfFile(fs::path path_to_check, Paths &paths, Placement &Pos);
+void checkIfFile(const fs::path &path_to_check, Paths &paths, Placement &Pos);
 
 void openInEditor(const fs::path &file, Paths &paths, Placement &Pos);
 void openInViewer(const fs::path &file);

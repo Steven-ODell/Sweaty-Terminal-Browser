@@ -7,16 +7,19 @@
 void loadEntriesFrPath(Paths &paths, Placement &Pos) {
 
   if (fs::is_directory(paths.full_path)) {
+
     paths.entries.clear();
     Global.new_name = "";
     Pos.cur_row = 0;
     Pos.window_offset = 0;
 
     for (const auto &entry : fs::directory_iterator(paths.full_path)) {
+
       paths.entries.push_back(entry);
     }
 
     paths.full_path.assign(paths.full_path);
+
     if (Global.hidden) {
 
       Global.hidden_count = 0;
@@ -24,6 +27,7 @@ void loadEntriesFrPath(Paths &paths, Placement &Pos) {
       for (int i = paths.entries.size() - 1; i >= 0; i--) {
 
         if (paths.entries[i].path().filename().string()[0] == '.') {
+
           paths.entries.erase(paths.entries.begin() + i);
           Global.hidden_count++;
         }
@@ -33,6 +37,7 @@ void loadEntriesFrPath(Paths &paths, Placement &Pos) {
     if (paths.entries.empty()) {
 
       if (paths.full_path != paths.base_dir) {
+
         std::string error_mes = "» Folder is empty or only contains hidden"
                                 "\x1b[";
         error_mes +=
@@ -43,17 +48,18 @@ void loadEntriesFrPath(Paths &paths, Placement &Pos) {
       }
     }
   } else if (!fs::is_directory(paths.full_path)) {
+
     checkIfFile(paths.full_path, paths, Pos);
   }
 }
 
-void loadPreviousPath(fs::path cur_path, Paths &paths, Placement &Pos) {
+void loadPreviousPath(Paths &paths, Placement &Pos) {
 
-  if (fs::exists(cur_path.parent_path())) {
+  if (fs::exists(paths.full_path.parent_path())) {
 
-    if (cur_path != paths.base_dir) {
+    if (paths.full_path != paths.base_dir) {
 
-      paths.full_path.assign(cur_path.parent_path());
+      paths.full_path.assign(paths.full_path.parent_path());
       loadEntriesFrPath(paths, Pos);
 
     } else {
@@ -68,13 +74,16 @@ void loadPreviousPath(fs::path cur_path, Paths &paths, Placement &Pos) {
   }
 }
 
-void checkIfFile(fs::path path_to_check, Paths &paths, Placement &Pos) {
+void checkIfFile(const fs::path &path_to_check, Paths &paths, Placement &Pos) {
+
   if (fs::is_regular_file(path_to_check)) {
+
     // Check if image or binary or able to be opened in nvim
     std::string EXT = path_to_check.extension();
 
     if (EXT == ".png" || EXT == ".jpg" || EXT == ".jpeg" || EXT == ".gif" ||
         EXT == ".webp" || EXT == ".bmp") {
+
       // Open with image viewer
       Global.hidden_holder = Global.hidden;
       paths.full_path = path_to_check.parent_path();
@@ -116,7 +125,10 @@ void checkIfFile(fs::path path_to_check, Paths &paths, Placement &Pos) {
       sleep(1);
 
       paths.full_path = path_to_check.parent_path();
+      loadEntriesFrPath(paths, Pos);
+
     } else {
+
       // Open Nvim to file path
       Global.hidden_holder = Global.hidden;
       paths.full_path = path_to_check.parent_path();
@@ -136,59 +148,81 @@ void checkIfFile(fs::path path_to_check, Paths &paths, Placement &Pos) {
 
 // Open Nvim to file path
 void openInEditor(const fs::path &file, Paths &paths, Placement &Pos) {
-  disableRawMode(); // Restore termios + leave alt screen
+
+  // Restore termios + leave alt screen
+  disableRawMode();
 
   pid_t pid = fork();
+
   if (pid == -1)
     die("fork");
+
   if (pid == 0) {
     execlp("nvim", "nvim", file.c_str(), nullptr);
-    _exit(127); // Only reached if exec failed
+    // Only reached if exec failed
+    _exit(127);
   }
-  waitpid(pid, nullptr, 0); // Block until nvim quits
 
-  enableRawMode();                                // Back to alt screen + raw
+  // Block until nvim quits
+  waitpid(pid, nullptr, 0);
+
+  // Back to alt screen + raw
+  enableRawMode();
+
   getWinSize(&Pos.screen_rows, &Pos.screen_cols); // They may have resized
   Global.hidden = Global.hidden_holder;
   refreshScreen(paths, Pos);
 }
 
 void openInViewer(const fs::path &file) {
+
   pid_t pid = fork();
+
   if (pid == -1)
     die("fork");
+
   if (pid == 0) {
+
     int null = open("/dev/null", O_WRONLY);
     dup2(null, STDOUT_FILENO);
     dup2(null, STDERR_FILENO);
     execlp("imv", "imv", file.c_str(), nullptr);
     _exit(127);
   }
-  // No waitpid — imv is a Wayland window, your TUI keeps running
+  // No waitpid — imv is a Wayland window, TUI keeps running
 }
 
 void openCurrentPath(const fs::path &cur_path, Paths &paths, Placement &Pos) {
+
   paths.full_path = cur_path;
   loadEntriesFrPath(paths, Pos);
+
   write(STDOUT_FILENO, "\x1b[H", 3);
 }
 
 void renamePath(Paths &paths, Placement &Pos) {
+
   if (Global.new_name == "") {
+
     std::string error_mes = "Error: Field was empty \x1b[";
     error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
     write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
     sleep(1);
+
   } else {
+
     try {
+
       fs::rename(paths.entries[Pos.cur_row].path(),
                  paths.entries[Pos.cur_row].path().parent_path() /
                      Global.new_name);
       loadEntriesFrPath(paths, Pos);
       Global.state = State::Browser;
       Global.new_name = "";
+
     } catch (const fs::filesystem_error &e) {
+
       std::string err_what = e.what();
       std::string error_mes = "» Error: " + err_what + "\x1b[";
       error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
@@ -201,21 +235,28 @@ void renamePath(Paths &paths, Placement &Pos) {
 
 void deletePath(Paths &paths, Placement &Pos) {
   try {
+
     uintmax_t total_removed = fs::remove_all(paths.entries[Pos.cur_row]);
+
     if (total_removed == 1) {
+
       std::string del_mes = " Folder deleted \x1b[";
       del_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
       write(STDOUT_FILENO, del_mes.c_str(), del_mes.size());
 
       sleep(1);
+
     } else {
+
       std::string del_mes = " Folder/files deleted \x1b[";
       del_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
       write(STDOUT_FILENO, del_mes.c_str(), del_mes.size());
 
       sleep(1);
     }
+
   } catch (const fs::filesystem_error &e) {
+
     std::string err_what = e.what();
     std::string error_mes = " Error: " + err_what + "\x1b[";
     error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
@@ -223,6 +264,7 @@ void deletePath(Paths &paths, Placement &Pos) {
 
     sleep(2);
   }
+
   Global.state = State::Browser;
   loadEntriesFrPath(paths, Pos);
   Global.del_choice = "";
@@ -230,21 +272,29 @@ void deletePath(Paths &paths, Placement &Pos) {
 
 void addNewPath(Paths &paths, Placement &Pos) {
   if (Global.brand_new_name == "") {
+
     std::string error_mes = "Error: Field was empty \x1b[";
     error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
     write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
     sleep(1);
+
   } else {
+
     try {
+
       std::string new_path =
           paths.full_path.string() + "/" + Global.brand_new_name;
+
       fs::create_directories(new_path);
       loadEntriesFrPath(paths, Pos);
       Global.state = State::Browser;
       Global.brand_new_name = "";
+
     } catch (const fs::filesystem_error &e) {
+
       std::string err_what = e.what();
+
       std::string error_mes = "Error: " + err_what + "\x1b[";
       error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
       write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());

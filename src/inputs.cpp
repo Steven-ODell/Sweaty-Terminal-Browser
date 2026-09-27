@@ -2,7 +2,6 @@
 #include "path_handle.h"
 #include "search.h"
 #include "term_set.h"
-#include <filesystem>
 
 std::string quit_escapes = "\x1b[2J\x1b[H";
 
@@ -122,7 +121,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     case 'h':
     // Backspace
     case '\x7f': {
-      loadPreviousPath(paths.full_path, paths, Pos);
+      loadPreviousPath(paths, Pos);
       break;
     }
     case '?': {
@@ -314,6 +313,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
   case State::Keys: {
 
     switch (c) {
+
     default: {
       Global.state = Global.previous_state;
       Global.hidden = Global.hidden_holder;
@@ -367,24 +367,35 @@ void processKeypress(Paths &paths, Placement &Pos) {
 }
 
 void moveCursorDown(Paths &paths, Placement &Pos) {
+
   if (Pos.cur_row + 1 < paths.entries.size()) {
+
     if (Pos.cur_row - Pos.window_offset + 2 <
         Pos.screen_rows - (Pos.screen_rows / 2)) {
+
       Pos.cur_row++;
+
     } else if (Pos.window_offset + paths.rows_for_entry <
                paths.entries.size() + 2) {
+
       Pos.window_offset++;
       Pos.cur_row++;
+
     } else if (Pos.cur_row + 1 <= paths.entries.size()) {
+
       Pos.cur_row++;
     }
   }
 }
 
 void moveCursorUp(Placement &Pos) {
+
   if (Pos.cur_row - Pos.window_offset + 2 > 2) {
+
     Pos.cur_row--;
+
   } else if (Pos.window_offset > 0) {
+
     Pos.window_offset--;
     Pos.cur_row--;
   }
