@@ -2,7 +2,7 @@
 #include "term_set.h"
 #include <csignal>
 #include <cstdlib>
-#include <iostream>
+#include <filesystem>
 
 /*
  # Create a file explorer with ansi codes for terminal and cursor controls
@@ -41,6 +41,16 @@ int main(int argc, char *argv[]) {
 
   // Get the $HOME value and set it as the base_dir
   const char *home_env = std::getenv("HOME");
+  if (home_env == nullptr || !fs::is_directory(home_env)) {
+    std::string err_message =
+        "Terminated because you have no $HOME env set "
+        "up\nEither:\n\n1: Set up your $HOME env\n2: Edit the config "
+        "'base_dir'";
+
+    write(STDOUT_FILENO, err_message.c_str(), err_message.size());
+    return 1;
+  }
+
   paths.base_dir = home_env;
   int base_dir_len = paths.base_dir.size();
 

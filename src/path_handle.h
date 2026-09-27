@@ -19,7 +19,6 @@ void openInEditor(const fs::path &file, Paths &paths, Placement &Pos);
 void openInViewer(const fs::path &file);
 
 void openCurrentPath(fs::path cur_path, Paths &paths, Placement &Pos);
-
 void renamePath(Paths &paths, Placement &Pos);
 void deletePath(fs::path incoming_path, Paths &paths, Placement &Pos);
 void addNewPath(fs::path current_dir, Paths &paths, Placement &Pos);

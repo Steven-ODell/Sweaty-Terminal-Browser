@@ -80,6 +80,17 @@ void processKeypress(Paths &paths, Placement &Pos) {
     case 'l':
     // Enter
     case '\r': {
+      if (paths.entries.empty()) {
+
+        std::string error_mes =
+            "Nothing to open \x1b[" +
+            std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+        write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
+
+        sleep(1);
+
+        break;
+      }
       openCurrentPath(paths.entries[Pos.cur_row], paths, Pos);
       break;
     }
@@ -103,7 +114,6 @@ void processKeypress(Paths &paths, Placement &Pos) {
       loadPreviousPath(paths.full_path, paths, Pos);
       break;
     }
-
     case '?': {
       Global.hidden_holder = Global.hidden;
       Global.previous_state = Global.state;
@@ -168,6 +178,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
       Global.hidden_holder = Global.hidden;
       Global.previous_state = Global.state;
       Global.state = State::Keys;
+      break;
     }
 
     // Down during path selection

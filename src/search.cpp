@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <cstdint>
 #include <filesystem>
-#include <iostream>
 
 namespace fs = std::filesystem;
 
@@ -64,16 +63,18 @@ void setSearchPath(Paths &paths) {
 void selectSearchPath(Paths &paths, Placement &Pos) {
   fs::path selected_path =
       paths.all_paths[paths.hits[Pos.cur_row].second].path();
-  // This doesnt do what think I wrote it to do.Need to if dir and size()
+  // This doesnt do what think I wrote it to do.Need to if dir and size(
   if (fs::is_directory(selected_path)) {
     Global.state = State::Browser;
     paths.search_in = "";
     Global.search_selector = false;
     Global.hidden = Global.hidden_holder;
     openCurrentPath(selected_path, paths, Pos);
+  } else if (fs::is_regular_file(selected_path)) {
+    checkIfFile(selected_path, paths, Pos);
   } else {
-    std::string error_mes = "» This folder is empty \x1b[";
-    error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+    std::string error_mes = "» This folder/file cant be opened \x1b[";
+    error_mes += std::to_string(Pos.screen_rows) + ";1H";
     write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
     sleep(1);

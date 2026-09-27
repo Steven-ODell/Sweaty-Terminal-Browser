@@ -1,120 +1,86 @@
 # Plans
 
-## Near-term, in order
+## Where its at
 
-1. Parent path floor. `loadEntriesFrPath` recovers from an empty directory by
-   climbing to `parent_path()` with no stop. Add the `E.base_dir` check so it
-   refuses to go above `$HOME` and shows a different message instead. Same fix
-   in `check_start_path` (`term_set.cpp:260`), which has the same climb.
-2. Tests.
-3. Rewrite the README by hand so it's mine, not AI.
-4. Publish as ready for others to use on Linux/WSL.
+Everything since I last updated this. Parent path floor is in so it wont climb past $HOME anymore in both spots. Tests are set up as their own executable in CMake with test_search.cpp. cur_row is the index now and cx is only for drawing. One write per frame so the flicker is gone. Path args work relative or direct. Moved most of the globals into Paths and Placement and E is Global now. Row budget is one rows_for_entry value. The browser ? saves hidden_holder now same as search. Around 950 lines total.
+
+## Small fixes before I call it done
+
+- Null check on getenv("HOME")
+- Errors go to std::cerr not cout. Still 11 couts left, 4 in term_set that print at startup and 7 in path_handle that print while raw mode is on. Has to happen before cd on quit since that uses stdout
+- Arrow keys come in as esc
+- resize handling (the event loop below fixes this)
+- const refs instead of by value for fs::path and std::string in path_handle.h, handle_arg and searchCurBuffer
+
+## Config file
+
+There isnt one yet. base_dir goes in it so nobody is stuck with $HOME, hidden files on or off by default, and keybinds later on. Read it from ~/.config on startup and fall back to defaults if its not there. Once it exists the no $HOME error can actually tell people to set base_dir.
 
 ## Tests
 
-- `tests/` folder with its own `main()`, built as a second CMake executable.
-- Each test calls a real function with known input and compares against the
-  answer I already know is right. Returns nonzero when it disagrees.
-- Start with `path_handle` functions like `parent_path()` handling. They take a
-  path and return a path, no globals to set up.
-- Then `searchCurBuffer`: given a fixed set of paths, assert `hits[0]` is the
-  path I expect for a given query.
-- To make the search testable, pass the paths into `searchCurBuffer` as a
-  parameter instead of reading the global `E.all_paths`. Same change that makes
-  the matcher liftable into a standalone tool later.
-- When expected results change because the scoring changed on purpose, update
-  the expected values deliberately, after checking every ranking that moved.
+- More tests for path_handle, they take a path and give a path so theres nothing to set up
+- When scoring changes on purpose update the expected values after checking every ranking that moved, not just to make it pass
 
-## Before publishing
+## The big stuff
 
-- Null check on `getenv("HOME")`. Assigning `nullptr` to a `std::string` is
-  undefined; flag it when `HOME` isn't set.
-- Row budget: the header at row 1 took a row from the entry list and `drawRows`
-  still loops `E.screen_rows` times. Only the hidden branch was compensated.
-  One `rows_for_entries` value feeding the loop bound at `term_set.cpp:91`, the
-  newline test at `:100-108`, and the scroll guards at `inputs.cpp:356` and
-  `:370`.
-- Truncation at `term_set.cpp:96` and `search.cpp:159` cuts to
-  `E.screen_cols - 2` then appends three characters, so it overflows by one and
-  wraps.
-- Browser `?` at `inputs.cpp:110` doesn't save `E.hidden_holder` the way the
-  Search one at `:176` does, so leaving the help screen restores a stale value.
-- README note that `/mnt/c` is slow under WSL.
+These are the ones I actually learn from. If I already know how to build it its maintenance not progress. If I have to go read how ncurses or fzf does it first then its worth doing. Rough order since the first two make everything after them easier.
 
-## Keeping `E.all_paths` fresh
+### 1. Screen diff renderer
 
-Build it in the background at startup, then maintain it incrementally instead
-of rebuilding.
+Keep a grid of cells for whats on screen and a grid for what should be and only write the cells that changed. This is how ncurses and ratatui work under the hood. Preview, splits and the editor all need it. Might pull it out as its own library and use it in everything I build after.
 
-- Delete: one pass over `E.all_paths` with `remove_if` on a prefix test,
-  erasing everything under the deleted path. One pass, not one lookup per
-  removed item. Covers `remove_all` taking a whole subtree.
-- Add: `push_back` each level `create_directories` made.
-- Rename: same single pass, rewriting the prefix instead of dropping the entry.
+### 2. Event loop
 
-## `cur_row` and `E.cx`
+poll() on stdin and inotify and the resize signal at the same time instead of blocking on a key read. The all_paths walk goes on a background thread and gets cancelled when the query changes. Teaches threads and locking and how real programs wait on more than one thing. Resize handling comes with it and the list updates when files change on disk.
 
-- `E.cur_row` is the selection. `E.cx` is the cursor drawing index.
-- Make `cur_row` the index directly so the `- 1` disappears from the 11 sites
-  that use it.
-- Zero-based, the clamps at `inputs.cpp:380`, `:394` and `search.cpp:97` become
-  `E.cur_row + 1 < size()`, not `size() - 1`, which wraps on an empty vector. Prompt row positions currently set through `E.cx` (Rename, Delete, Add) get
-  hardcoded in those draw functions, since they're draw-time facts.
-- Browser and Search need to agree on whether Search has a header row. Right
-  now they don't: `inputs.cpp:410` guards `E.cx > 2`, `search.cpp:112` guards
-  `E.cx > 1`.
+### 3. Proper search
 
-## Structure and size
+Matching works well enough to use for now. When I come back to it:
 
-- `state.h` / `state.cpp`. Dispatch to a function per state instead of the whole
-  state switch living in `term_set`.
-- Pass the write strings in as parameters and append the rest per state, which
-  removes the large blocks in `term_set`.
-- Collapse the remaining double writes into one write per grouping.
-- Take `const fs::path &` and `const std::string &` instead of by value in
-  `openCurrentPath`, `deletePath`, `loadEntriesFrPath`, `searchCurBuffer`.
-- `const` where things should be const.
-- Target: stay under 1000 lines.
+- Additive scoring on top of the substring and subsequence tiers. Gap count, consecutive runs, match length, spaces
+- Case insensitive but penalize a case mismatch instead of rejecting it
+- The greedy scan anchors seq_start to the first match of the first char so the span it scores isnt the smallest window
+- pair<uint32_t, uint32_t> cant hold a signed score
+- fzf does this with dynamic programming, read how before writing mine
 
-## Search, on hold
+### 4. Preview with coloring
 
-Matching works well enough to use. Deferred, with the plan already written down:
+Preview stops being a state and becomes a flag, it never changes what a key means so its not a mode. Top of the file in a side pane and color it inline, which means tokenizing the text as its drawn. Colors add escape bytes so buf.size() stops being the width on screen and I need to track visible width separately. Separate key for full preview that opens the whole file scrollable or overlays it in a box. Extra horizontal space goes to the previous and next folder not a tree view.
 
-- Additive scoring on top of the existing substring and subsequence tiers.
-- Gap count, consecutive letter runs, match length, space count.
-- Case: match case-insensitively but penalize a case mismatch rather than
-  rejecting it, and keep tracking which it was.
-- Fix the greedy forward scan, which anchors `seq_start` to the earliest
-  occurrence of the query's first character, so the span it scores isn't the
-  minimum window.
-- `pair<uint32_t, uint32_t>` can't hold a signed additive score.
+### 5. Image rendering
 
-## Layout
+Kitty graphics protocol, the file gets base64d and wrapped in escape codes. That part is mostly plumbing. Where it gets real is decoding the PNG myself which means writing inflate, and that could be its own project that plugs in here.
 
-- Use the extra horizontal space for the previous and next folder rather than a
-  dedicated tree view.
-- Preview stops being a state and becomes a toggleable flag. It never changes
-  what a key means, so it isn't a mode.
-- Separate full preview key that pulls a buffer of the text, or overlays it in
-  an ANSI box over the current session. Scrollable, or just the top lines.
+### 6. Diff tool
+
+Myers algorithm for diffing text. Build it as its own library first then hook it into the browser.
+
+### 7. Git over the network
+
+Learn what actually happens when git talks to GitHub. Start with raw sockets and plain HTTP to something local so I see the requests by hand. HTTPS needs TLS which Im not writing myself so thats libcurl or OpenSSL. Other route is SSH with libssh2. End goal is repo status or pulling from inside the browser.
+
+### 8. Editor
+
+Turn preview into an editor with a tree explorer next to it. The real learning is the text buffer, gap buffer or piece table or rope, not the UI. Biggest one here and waits until 1 and 2 are solid. Could honestly be a 2 year thing.
+
+## Keeping all_paths fresh
+
+Build it in the background at startup then keep it updated instead of rebuilding.
+
+- Delete: one remove_if pass with a prefix test, erases everything under the deleted path. Covers remove_all taking a whole subtree
+- Add: push_back each level create_directories made
+- Rename: same single pass but rewrite the prefix instead of dropping it
 
 ## cd on quit
 
-`o` quits and leaves the shell in the selected directory. The program can't
-change the parent shell's directory, so it writes the final path out and a zsh
-function wrapping the binary reads it and runs `cd`. Same mechanism as lf's
-`-last-dir-path`. Decide between stdout and a temp file; stdout means nothing
-else can print to stdout, and it currently does.
+o quits and leaves the shell in the selected folder. The program cant change the parent shells directory so it writes the path out and a zsh function wrapping the binary reads it and runs cd. Same thing lf does with -last-dir-path. Stdout or a temp file, stdout only works once all the couts are gone.
 
 ## Contributing
 
-- `CONTRIBUTING.md`, not the README.
-- Written by hand. Contributors can consult AI the way I do, but it doesn't
-  touch the project.
-- Stated as a review standard: you understand every line you submit and can
-  explain why it's written that way.
+- CONTRIBUTING.md not the README
+- Written by hand. People can consult AI the way I do but it doesnt touch the project
+- The rule is you understand every line you submit and can explain why its written that way
 
 ## After this project
 
-- Contribute to someone else's codebase. Reading other people's code, merging,
-  using GitHub as a collaboration tool instead of a personal cloud.
+- Contribute to someone elses codebase. Reading other peoples code, merging, using GitHub to work with people instead of as a personal cloud

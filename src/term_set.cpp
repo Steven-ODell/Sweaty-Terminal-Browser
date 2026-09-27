@@ -2,7 +2,6 @@
 #include "path_handle.h"
 #include "search.h"
 #include <filesystem>
-#include <iostream>
 #include <string>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -249,8 +248,11 @@ void setPathsForBaseSearch(Paths &paths) {
 void check_start_path(Paths &paths, Placement &Pos) {
   loadEntriesFrPath(paths, Pos);
   if (paths.entries.size() == 0) {
-    std::cout << "Path doesnt contain anything - Loading parent path"
-              << std::endl;
+    std::string err_message =
+        "Path doesnt contain anything - Loading parent path";
+
+    write(STDOUT_FILENO, err_message.c_str(), err_message.size());
+
     sleep(1);
     if (paths.full_path != paths.base_dir) {
       paths.full_path = paths.full_path.parent_path();
@@ -272,14 +274,19 @@ void handle_arg(std::string argument, Paths &paths) {
   }
 
   if (argument[0] == '/' && !found_home) {
-    std::cout << "changing " << argument;
+    std::string err_message = "changing " + argument;
     argument = argument.substr(1, argument.size());
-    std::cout << " to " << argument << std::endl;
+    err_message += " to " + argument;
+
+    write(STDOUT_FILENO, err_message.c_str(), err_message.size());
   }
   paths.full_path = paths.full_path / argument;
 
   if (!(fs::exists(paths.full_path))) {
-    std::cout << "NOT A VALID PATH: Loading current dir..." << std::endl;
+
+    std::string err_message = "NOT A VALID PATH: Loading current dir...";
+
+    write(STDOUT_FILENO, err_message.c_str(), err_message.size());
     paths.full_path = fs::current_path().string();
   }
 }

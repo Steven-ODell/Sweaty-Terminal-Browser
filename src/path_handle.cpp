@@ -1,7 +1,6 @@
 #include "path_handle.h"
 #include "term_set.h"
 #include <filesystem>
-#include <iostream>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -34,31 +33,17 @@ void loadEntriesFrPath(Paths &paths, Placement &Pos) {
     if (paths.entries.empty()) {
 
       if (paths.full_path != paths.base_dir) {
-        std::string error_mes = "» Folder is empty or only contains hidden - "
-                                "Loading parent path \x1b[";
+        std::string error_mes = "» Folder is empty or only contains hidden"
+                                "\x1b[";
         error_mes +=
             std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
         write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
-        paths.full_path = paths.full_path.parent_path();
 
-        sleep(2);
-
-      } else {
-
-        std::string error_mes = "» Folder is empty or only contains hidden - "
-                                "Loading parent path \x1b[";
-        error_mes +=
-            std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
-        write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
-        paths.full_path = paths.full_path;
-
-        sleep(2);
+        sleep(1);
       }
-
-      loadEntriesFrPath(paths, Pos);
-    } else if (!fs::is_directory(paths.full_path)) {
-      checkIfFile(paths.full_path, paths, Pos);
     }
+  } else if (!fs::is_directory(paths.full_path)) {
+    checkIfFile(paths.full_path, paths, Pos);
   }
 }
 
@@ -132,7 +117,6 @@ void checkIfFile(fs::path path_to_check, Paths &paths, Placement &Pos) {
 
       paths.full_path = path_to_check.parent_path();
     } else {
-
       // Open Nvim to file path
       Global.hidden_holder = Global.hidden;
       paths.full_path = path_to_check.parent_path();
@@ -191,7 +175,10 @@ void openCurrentPath(fs::path cur_path, Paths &paths, Placement &Pos) {
 
 void renamePath(Paths &paths, Placement &Pos) {
   if (Global.new_name == "") {
-    std::cout << "Error: Field was empty" << std::endl;
+    std::string error_mes = "Error: Field was empty \x1b[";
+    error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+    write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
+
     sleep(1);
   } else {
     try {
@@ -202,7 +189,12 @@ void renamePath(Paths &paths, Placement &Pos) {
       Global.state = State::Browser;
       Global.new_name = "";
     } catch (const fs::filesystem_error &e) {
-      std::cout << "Error: " << e.what() << std::endl;
+      std::string err_what = e.what();
+      std::string error_mes = "» Error: " + err_what + "\x1b[";
+      error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+      write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
+
+      sleep(2);
     }
   }
 }
@@ -211,14 +203,24 @@ void deletePath(fs::path incoming_path, Paths &paths, Placement &Pos) {
   try {
     uintmax_t total_removed = fs::remove_all(incoming_path);
     if (total_removed == 1) {
-      std::cout << "Folder deleted" << std::endl;
+      std::string del_mes = " Folder deleted \x1b[";
+      del_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+      write(STDOUT_FILENO, del_mes.c_str(), del_mes.size());
+
       sleep(1);
     } else {
-      std::cout << total_removed << " Folders/files deleted" << std::endl;
+      std::string del_mes = " Folder/files deleted \x1b[";
+      del_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+      write(STDOUT_FILENO, del_mes.c_str(), del_mes.size());
+
       sleep(1);
     }
   } catch (const fs::filesystem_error &e) {
-    std::cout << "Error: " << e.what() << std::endl;
+    std::string err_what = e.what();
+    std::string error_mes = " Error: " + err_what + "\x1b[";
+    error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+    write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
+
     sleep(2);
   }
   Global.state = State::Browser;
@@ -228,7 +230,10 @@ void deletePath(fs::path incoming_path, Paths &paths, Placement &Pos) {
 
 void addNewPath(fs::path current_dir, Paths &paths, Placement &Pos) {
   if (Global.brand_new_name == "") {
-    std::cout << "Error: Field was empty" << std::endl;
+    std::string error_mes = "Error: Field was empty \x1b[";
+    error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+    write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
+
     sleep(1);
   } else {
     try {
@@ -239,7 +244,12 @@ void addNewPath(fs::path current_dir, Paths &paths, Placement &Pos) {
       Global.state = State::Browser;
       Global.brand_new_name = "";
     } catch (const fs::filesystem_error &e) {
-      std::cout << "Error: " << e.what() << std::endl;
+      std::string err_what = e.what();
+      std::string error_mes = "Error: " + err_what + "\x1b[";
+      error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+      write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
+
+      sleep(2);
     }
   }
 }
