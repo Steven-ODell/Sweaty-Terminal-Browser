@@ -8,7 +8,7 @@
 #include <vector>
 
 std::vector<std::pair<uint32_t, uint32_t>>
-searchCurBuffer(Paths &paths, std::string cur_buffer);
+searchCurBuffer(Paths &paths, const std::string &cur_buffer);
 
 void setSearchPath(Paths &paths);
 

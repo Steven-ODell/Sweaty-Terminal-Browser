@@ -46,6 +46,17 @@ void processKeypress(Paths &paths, Placement &Pos) {
 
     // Delete
     case 'd': {
+      if (paths.entries.empty()) {
+
+        std::string error_mes =
+            "Nothing to delete \x1b[" +
+            std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+        write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
+
+        sleep(1);
+
+        break;
+      }
       Global.hidden_holder = Global.hidden;
       Global.hidden = false;
       Global.state = State::Delete;
@@ -236,7 +247,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     case 'y':
     case 'Y': {
       Global.hidden = Global.hidden_holder;
-      deletePath(paths.entries[Pos.cur_row], paths, Pos);
+      deletePath(paths, Pos);
       break;
     }
 
@@ -259,7 +270,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     switch (c) {
     // Enter
     case '\r': {
-      addNewPath(paths.full_path, paths, Pos);
+      addNewPath(paths, Pos);
       Global.hidden = Global.hidden_holder;
       Pos.cur_row = 0;
       loadEntriesFrPath(paths, Pos);

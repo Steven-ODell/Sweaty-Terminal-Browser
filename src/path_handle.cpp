@@ -167,7 +167,7 @@ void openInViewer(const fs::path &file) {
   // No waitpid — imv is a Wayland window, your TUI keeps running
 }
 
-void openCurrentPath(fs::path cur_path, Paths &paths, Placement &Pos) {
+void openCurrentPath(const fs::path &cur_path, Paths &paths, Placement &Pos) {
   paths.full_path = cur_path;
   loadEntriesFrPath(paths, Pos);
   write(STDOUT_FILENO, "\x1b[H", 3);
@@ -199,9 +199,9 @@ void renamePath(Paths &paths, Placement &Pos) {
   }
 }
 
-void deletePath(fs::path incoming_path, Paths &paths, Placement &Pos) {
+void deletePath(Paths &paths, Placement &Pos) {
   try {
-    uintmax_t total_removed = fs::remove_all(incoming_path);
+    uintmax_t total_removed = fs::remove_all(paths.entries[Pos.cur_row]);
     if (total_removed == 1) {
       std::string del_mes = " Folder deleted \x1b[";
       del_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
@@ -228,7 +228,7 @@ void deletePath(fs::path incoming_path, Paths &paths, Placement &Pos) {
   Global.del_choice = "";
 }
 
-void addNewPath(fs::path current_dir, Paths &paths, Placement &Pos) {
+void addNewPath(Paths &paths, Placement &Pos) {
   if (Global.brand_new_name == "") {
     std::string error_mes = "Error: Field was empty \x1b[";
     error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
