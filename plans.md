@@ -1,6 +1,6 @@
 # Plans
 
- # Create a file explorer with escape codes for drawing, cursor controls, and colors
+## Create a file explorer with escape codes for drawing, cursor controls, and colors
  [x]Functional file browser
  [x]Nvim controls
  [x]Display files in 1 column
@@ -13,20 +13,20 @@
  [x]Open a starting folder as an argument(basic now, bugs with it)
  [x]Multiple lines for search items breaks curor count
  [x]Bug when leaving nvim you lose track of your hidden state
+ [x]Arrow keys come in as esc not catching the end of the sequence
+ [x]Rework state so that it is one write to the buffer per input
 [ ] resize handling (the event loop below fixes this)
  [ ]Rework Search
  [ ]Preview Mode
  [ ]Tree View
 [ ] Proper config file that you can edit and change defaults, key binds, and color
  [ ]Work on color implementations
-[ ] Arrow keys come in as esc not catching the end of the sequence
- [x]Rework state so that it is one write to the buffer per input
 [ ] Truncation at term_set drawRows() and search drawSearchRows() cuts to screen_cols - 2 then adds 3 dots so it works now because the first column is two bits but need to count columns not bits
 [ ] Fix bug with '?' in search defaulting the return to browser as hidden false. Need a check inside the keys state and inside the inputs for if you are in search then ignore the hidden flag saving
 
-## Where its at
+# Next plans
 
-Everything since I last updated this. Parent path floor is in so it wont climb past $HOME anymore in both spots. Tests are set up as their own executable in CMake with test_search.cpp. cur_row is the index now and cx is only for drawing. One write per frame so the flicker is gone. Path args work relative or direct. Moved most of the globals into Paths and Placement and E is Global now. Row budget is one rows_for_entry value. The browser ? saves hidden_holder now same as search. Around 950 lines total.
+---
 
 ## Config file
 

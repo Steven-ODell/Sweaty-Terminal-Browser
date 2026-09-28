@@ -38,6 +38,8 @@ void enableRawMode() {
   raw.c_iflag &= ~(IXON | ICRNL);
   raw.c_oflag &= ~(OPOST);
   raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+  raw.c_cc[VMIN] = 0;
+  raw.c_cc[VTIME] = 1;
 
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
   write(STDOUT_FILENO, "\x1b[?1049h", 8);
@@ -193,36 +195,36 @@ void refreshScreen(Paths &paths, Placement &Pos) {
       full_buf = "\x1b[2J\x1b[HSEARCH\r\n"
                  "\r\n"
                  "  typing:\r\n"
-                 "    any key     add to the query\r\n"
-                 "    Backspace   delete a character\r\n"
-                 "    Enter       jump to the results\r\n"
-                 "    Esc         cancel, back to browser\r\n"
+                 "    any key         add to the query\r\n"
+                 "    Backspace       delete a character\r\n"
+                 "    Enter           jump to the results\r\n"
+                 "    Esc             cancel, back to browser\r\n"
                  "\r\n"
                  "  picking a result:\r\n"
-                 "    j / k       down / up\r\n"
-                 "    Enter       open it\r\n"
-                 "    i / Esc     back to typing\r\n"
+                 "    j / k / ↓ / ↑   down / up\r\n"
+                 "    l / → / Enter   open it\r\n"
+                 "    Esc             back to typing\r\n"
                  "\r\n"
-                 "  ?             this screen\r\n"
+                 "  ?                 this screen\r\n"
                  "\r\n"
                  "  press any key to go back\r\n";
     } else {
 
       full_buf = "\x1b[2J\x1b[HBROWSER\r\n"
                  "\r\n"
-                 "  j / k         down / up\r\n"
-                 "  l / o / Enter open folder or file\r\n"
-                 "  h / Backspace back to parent folder\r\n"
+                 "  j / k / ↓ / ↑       down / up\r\n"
+                 "  l / o / → / Enter   open folder or file\r\n"
+                 "  h / ← / Backspace   back to parent folder\r\n"
                  "\r\n"
-                 "  a             new folder\r\n"
-                 "  r             rename\r\n"
-                 "  d             delete\r\n"
+                 "  a                   new folder\r\n"
+                 "  r                   rename\r\n"
+                 "  d                   delete\r\n"
                  "\r\n"
-                 "  H             toggle hidden files\r\n"
-                 "  s             search\r\n"
-                 "  ?             this screen\r\n"
+                 "  H                   toggle hidden files\r\n"
+                 "  s                   search\r\n"
+                 "  ?                   this screen\r\n"
                  "\r\n"
-                 "  q / Q / Esc   quit\r\n"
+                 "  q / Q / Esc         quit\r\n"
                  "\r\n"
                  "  press any key to go back\r\n";
     }

@@ -5,19 +5,61 @@
 
 std::string quit_escapes = "\x1b[2J\x1b[H";
 
-char readKey() {
+int readKey() {
+
   int nread;
+
   char c;
+
   while ((nread = read(STDIN_FILENO, &c, 1)) != 1) {
     if (nread == -1 && errno != EAGAIN)
       die("read");
+  }
+
+  if (c == '\x1b') {
+
+    char seq[2];
+
+    if (read(STDIN_FILENO, &seq[0], 1) != 1)
+      return '\x1b';
+
+    if (read(STDIN_FILENO, &seq[1], 1) != 1)
+      return '\x1b';
+
+    if (seq[0] == '[' || seq[0] == 'O') {
+
+      switch (seq[1]) {
+
+      // Up
+      case 'A': {
+        return ARROW_UP;
+        break;
+      }
+
+      case 'B': {
+        return ARROW_DOWN;
+        break;
+      }
+
+      case 'C': {
+        return ARROW_RIGHT;
+        break;
+      }
+
+      case 'D': {
+        return ARROW_LEFT;
+        break;
+      }
+      }
+    }
+    return '\x1b';
   }
   return c;
 }
 
 void processKeypress(Paths &paths, Placement &Pos) {
 
-  char c = readKey();
+  int c = readKey();
 
   switch (Global.state) {
 
@@ -86,6 +128,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     }
 
     // Open
+    case ARROW_RIGHT:
     case 'o':
     case 'l':
     // Enter
@@ -106,18 +149,21 @@ void processKeypress(Paths &paths, Placement &Pos) {
     }
 
     // Up
+    case ARROW_UP:
     case 'k': {
       moveCursorUp(Pos);
       break;
     }
 
     // Down
+    case ARROW_DOWN:
     case 'j': {
       moveCursorDown(paths, Pos);
       break;
     }
 
     // Back
+    case ARROW_LEFT:
     case 'h':
     // Backspace
     case '\x7f': {
@@ -173,6 +219,27 @@ void processKeypress(Paths &paths, Placement &Pos) {
       break;
     }
 
+    case ARROW_RIGHT: {
+      if (Global.search_selector) {
+        selectSearchPath(paths, Pos);
+        Global.search_selector = false;
+      }
+      break;
+    }
+
+    // Up during search selection
+    case ARROW_UP: {
+      if (Global.search_selector) {
+        moveCursorUpSearch(Pos);
+      }
+      break;
+    }
+
+    case ARROW_LEFT: {
+      break;
+    }
+
+    // Up during search selection
     case 'k': {
       if (Global.search_selector) {
         moveCursorUpSearch(Pos);
@@ -184,10 +251,19 @@ void processKeypress(Paths &paths, Placement &Pos) {
       break;
     }
 
+    // Key Binds
     case '?': {
       Global.hidden_holder = Global.hidden;
       Global.previous_state = Global.state;
       Global.state = State::Keys;
+      break;
+    }
+
+    // Down during path selection
+    case ARROW_DOWN: {
+      if (Global.search_selector) {
+        moveCursorDownSearch(paths, Pos);
+      }
       break;
     }
 
@@ -296,6 +372,19 @@ void processKeypress(Paths &paths, Placement &Pos) {
       break;
     }
 
+    case ARROW_UP: {
+      break;
+    }
+    case ARROW_DOWN: {
+      break;
+    }
+    case ARROW_LEFT: {
+      break;
+    }
+    case ARROW_RIGHT: {
+      break;
+    }
+
     default: {
       Global.brand_new_name += c;
       break;
@@ -353,6 +442,19 @@ void processKeypress(Paths &paths, Placement &Pos) {
       if (Global.new_name.size() > 0) {
         Global.new_name.pop_back();
       }
+      break;
+    }
+
+    case ARROW_UP: {
+      break;
+    }
+    case ARROW_DOWN: {
+      break;
+    }
+    case ARROW_LEFT: {
+      break;
+    }
+    case ARROW_RIGHT: {
       break;
     }
 

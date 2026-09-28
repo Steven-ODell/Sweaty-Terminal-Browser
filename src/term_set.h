@@ -53,8 +53,6 @@ void disableRawMode();
 
 void enableRawMode();
 
-char readKey();
-
 std::string drawRows(Paths &paths, Placement &Pos);
 
 int getWinSize(int *rows, int *cols);
