@@ -1,4 +1,5 @@
 #include "term_set.h"
+#include "config.h"
 #include "path_handle.h"
 #include "search.h"
 #include <filesystem>
@@ -6,7 +7,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-Config Global;
+Term Global;
+Config config;
 std::string move_cursor_corner = "\x1b[2J\x1b[H";
 
 /*
@@ -100,9 +102,9 @@ void refreshScreen(Paths &paths, Placement &Pos) {
 
   // Clear screen and set cursor to top corner and then write the current path
   // Unwrap comment for "Debug" prints
-  std::string full_buf = move_cursor_corner + Global.dir_color +
+  std::string full_buf = move_cursor_corner + config.dir_color +
                          paths.full_path.filename().string() +
-                         Global.color_reset
+                         config.color_reset
 
       /*+
     " paths.cur_row:" + std::to_string(Pos.cur_row) +
@@ -173,7 +175,7 @@ void refreshScreen(Paths &paths, Placement &Pos) {
                 ";1H\x1b[31m"
                 "Are you sure you want to delete '" +
                 paths.entries[Pos.cur_row].path().filename().string() +
-                Global.color_reset + "': [y/n]";
+                config.color_reset + "': [y/n]";
 
     // Calculate cursor offset
     int name_offset =
@@ -275,8 +277,8 @@ void refreshScreen(Paths &paths, Placement &Pos) {
 
     full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";1H";
 
-    full_buf += "\x1b[31mHidden " + Global.color_reset +
-                std::to_string(Global.hidden_count) + " | '?' for Keys \x1b[" +
+    full_buf += config.hidden_flag_color + "Hidden " + config.color_reset +
+                std::to_string(paths.hidden_count) + " | '?' for Keys \x1b[" +
                 std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
   }
 
@@ -286,8 +288,7 @@ void refreshScreen(Paths &paths, Placement &Pos) {
 void initExplorer(Paths &paths, Placement &Pos) {
 
   Global.state = State::Browser;
-  Global.hidden = true;
-  Global.search_selector = false;
+  Global.hidden = config.hidden;
 
   // If the window comes back as -1 or invalid then "die"
   if (getWinSize(&Pos.screen_rows, &Pos.screen_cols) == -1)
@@ -381,9 +382,26 @@ void initProgram(Paths &paths, Placement &Pos) {
   // Set the path of the folder you are in to the browser directory
   paths.full_path = fs::current_path().string();
 
-  // Get the $HOME value and set it as the base_dir
   const char *home_env = std::getenv("HOME");
-  if (home_env == nullptr || !fs::is_directory(home_env)) {
+
+  if (!(config.base_dir == "")) {
+    if (config.base_dir[config.base_dir.size() - 1] == '/') {
+      config.base_dir.pop_back();
+    }
+    if (fs::is_directory(config.base_dir)) {
+      paths.base_dir = config.base_dir;
+    } else {
+      std::string err_message =
+          "Terminated because your config base_dir is invalid"
+          "\nEither:\n\n1: Set up your $HOME env\n2: Edit the config "
+          "'base_dir'";
+
+      write(STDOUT_FILENO, err_message.c_str(), err_message.size());
+
+      die("Improper config base_dir");
+    }
+    // Get the $HOME value and set it as the base_di
+  } else if (home_env == nullptr || !fs::is_directory(home_env)) {
 
     std::string err_message =
         "Terminated because you have no $HOME env set "
@@ -393,9 +411,9 @@ void initProgram(Paths &paths, Placement &Pos) {
     write(STDOUT_FILENO, err_message.c_str(), err_message.size());
 
     die("No HOME env set");
+  } else {
+    paths.base_dir = home_env;
   }
-
-  paths.base_dir = home_env;
 
   // Loop through and set the initial search array for searching later
   setPathsForBaseSearch(paths);

@@ -15,11 +15,12 @@
  [x]Bug when leaving nvim you lose track of your hidden state
  [x]Arrow keys come in as esc not catching the end of the sequence
  [x]Rework state so that it is one write to the buffer per input
+[ ]Search doesnt show hidden currently. Create some kind of toggle for it but that means loading them all
 [ ] resize handling (the event loop below fixes this)
  [ ]Rework Search
  [ ]Preview Mode
  [ ]Tree View
-[ ] Proper config file that you can edit and change defaults, key binds, and color
+[ ] Proper config file that you can edit and change defaults, key binds, and color. Started this
  [ ]Work on color implementations
 [ ] Truncation at term_set drawRows() and search drawSearchRows() cuts to screen_cols - 2 then adds 3 dots so it works now because the first column is two bits but need to count columns not bits
 [ ] Fix bug with '?' in search defaulting the return to browser as hidden false. Need a check inside the keys state and inside the inputs for if you are in search then ignore the hidden flag saving

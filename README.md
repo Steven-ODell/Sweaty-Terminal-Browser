@@ -127,14 +127,14 @@ While picking a result:
 I am well aware of many limitations within the project currently. Small list of the bugs currently:
 
 [ ] No resize handling (the event loop below fixes this)
- [ ]Rework Search(works totally fine but want it refined)
+ [ ]Rework Search (works totally fine but want it refined)
  [ ]Preview Mode
  [ ]Tree View
-[ ] Proper config file that you can edit and change defaults, key binds, and color
+[ ] Proper config file that you can edit and change defaults, key binds, and color. Started this
  [ ]Work on color implementations
 [ ] Truncation at term_set drawRows() and search drawSearchRows() cuts to screen_cols - 2 then adds 3 dots so it works now because the first column is two bits but need to count columns not bits
 [ ] Fix bug with '?' in search defaulting the return to browser as hidden false. Need a check inside the keys state and inside the inputs for if you are in search then ignore the hidden flag saving
 [ ] No handling for $EDITOR or $VISUAL always set to nvim. Want to add ability to collapse from $VISUAL down to vi. $VISUAL -> $EDITOR -> nvim -> vim -> nano -> vi -> error message. Only if nothing set in .config
 [ ] Clean up code in general 
 
-Just to name a few. Many more are listed in the ==tasks== folder and the ==plans.md==
+Just to name a few. Many more are listed in the `tasks` folder and the `plans.md`

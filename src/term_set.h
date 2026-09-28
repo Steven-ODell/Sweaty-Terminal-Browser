@@ -13,39 +13,37 @@ enum State { Browser, Rename, Search, Preview, Keys, Delete, Add };
 
 struct Paths {
   int skipped_paths = 0;
-  int rows_for_entry;
+  int rows_for_entry = 0;
+  int hidden_count = 0;
   std::vector<std::filesystem::directory_entry> all_paths;
-  std::string base_dir;
-  std::string previous_path;
-  std::string search_in;
+  std::string base_dir = "";
+  std::string previous_path = "";
+  std::string search_in = "";
   std::filesystem::path full_path;
   std::vector<std::pair<uint32_t, uint32_t>> hits;
   std::vector<std::filesystem::directory_entry> entries;
 };
 
-struct Config {
+struct Term {
   struct termios orig_termios;
-  int hidden_count = 0;
-  std::string del_choice;
-  std::string brand_new_name;
-  std::string dir_color = "\x1b[35m";
-  std::string color_reset = "\x1b[0m";
-  std::string new_name;
-  bool search_selector;
+  std::string del_choice = "";
+  std::string brand_new_name = "";
+  std::string new_name = "";
+  bool search_selector = false;
   bool hidden = true;
-  bool hidden_holder;
+  bool hidden_holder = hidden;
   State state;
   State previous_state;
 };
 
 struct Placement {
-  int cur_row;
+  int cur_row = 0;
   int window_offset = 0;
   int screen_rows;
   int screen_cols;
 };
 
-extern Config Global;
+extern Term Global;
 
 void initProgram(Paths &paths, Placement &Pos);
 

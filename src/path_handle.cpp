@@ -22,14 +22,14 @@ void loadEntriesFrPath(Paths &paths, Placement &Pos) {
 
     if (Global.hidden) {
 
-      Global.hidden_count = 0;
+      paths.hidden_count = 0;
 
       for (int i = paths.entries.size() - 1; i >= 0; i--) {
 
         if (paths.entries[i].path().filename().string()[0] == '.') {
 
           paths.entries.erase(paths.entries.begin() + i);
-          Global.hidden_count++;
+          paths.hidden_count++;
         }
       }
     }
@@ -131,8 +131,9 @@ void checkIfFile(const fs::path &path_to_check, Paths &paths, Placement &Pos) {
 
       // Open Nvim to file path
       Global.hidden_holder = Global.hidden;
-      paths.full_path = path_to_check.parent_path();
+      paths.full_path = path_to_check;
       openInEditor(path_to_check, paths, Pos);
+      paths.full_path = path_to_check.parent_path();
       loadEntriesFrPath(paths, Pos);
     }
   } else {
