@@ -25,9 +25,7 @@ void loadEntriesFrPath(Paths &paths, Placement &Pos) {
       paths.hidden_count = 0;
 
       for (int i = paths.entries.size() - 1; i >= 0; i--) {
-
         if (paths.entries[i].path().filename().string()[0] == '.') {
-
           paths.entries.erase(paths.entries.begin() + i);
           paths.hidden_count++;
         }

@@ -418,3 +418,5 @@ void initProgram(Paths &paths, Placement &Pos) {
   // Loop through and set the initial search array for searching later
   setPathsForBaseSearch(paths);
 }
+
+void loadConfig() {}

@@ -16,43 +16,9 @@ int readKey() {
       die("read");
   }
 
+  // Catch "esc"
   if (c == '\x1b') {
-
-    char seq[2];
-
-    if (read(STDIN_FILENO, &seq[0], 1) != 1)
-      return '\x1b';
-
-    if (read(STDIN_FILENO, &seq[1], 1) != 1)
-      return '\x1b';
-
-    if (seq[0] == '[' || seq[0] == 'O') {
-
-      switch (seq[1]) {
-
-      // Up
-      case 'A': {
-        return ARROW_UP;
-        break;
-      }
-
-      case 'B': {
-        return ARROW_DOWN;
-        break;
-      }
-
-      case 'C': {
-        return ARROW_RIGHT;
-        break;
-      }
-
-      case 'D': {
-        return ARROW_LEFT;
-        break;
-      }
-      }
-    }
-    return '\x1b';
+    return handleEsc();
   }
   return c;
 }
@@ -501,4 +467,45 @@ void moveCursorUp(Placement &Pos) {
     Pos.window_offset--;
     Pos.cur_row--;
   }
+}
+
+int handleEsc() {
+
+  // Set an array to track the next to chars
+  char seq[2];
+
+  // If nothing it is escape
+  if (read(STDIN_FILENO, &seq[0], 1) != 1)
+    return '\x1b';
+  if (read(STDIN_FILENO, &seq[1], 1) != 1)
+    return '\x1b';
+
+  // If it is '[' or 'O' for some terminals need to check
+  if (seq[0] == '[' || seq[0] == 'O') {
+
+    switch (seq[1]) {
+
+    // Up
+    case 'A': {
+      return ARROW_UP;
+      break;
+    }
+
+    case 'B': {
+      return ARROW_DOWN;
+      break;
+    }
+
+    case 'C': {
+      return ARROW_RIGHT;
+      break;
+    }
+
+    case 'D': {
+      return ARROW_LEFT;
+      break;
+    }
+    }
+  }
+  return '\x1b';
 }

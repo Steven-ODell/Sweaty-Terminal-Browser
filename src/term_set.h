@@ -64,3 +64,5 @@ void setPathsForBaseSearch(Paths &paths);
 void check_start_path(Paths &paths, Placement &Pos);
 
 void handle_arg(std::string &argument, Paths &paths);
+
+void loadConfig();
