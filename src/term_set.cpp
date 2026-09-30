@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <ostream>
 #include <string>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -439,14 +440,15 @@ void loadConfig(const char *home_env) {
 }
 
 void parseConfigFile(fs::path &config_path) {
+
   // load file
   std::ifstream file(config_path);
   std::string while_file;
   std::string full_file;
 
   // walk and look for keywords
-  while (file >> while_file) {
-    full_file += while_file;
+  while (std::getline(file, while_file)) {
+    full_file += while_file + '\n';
   }
 
   size_t base_dir_found = full_file.find("home=");
@@ -456,11 +458,25 @@ void parseConfigFile(fs::path &config_path) {
   size_t header_color_found = full_file.find("header_color=");
   size_t default_color_found = full_file.find("default_color=");
 
+  // Set base_dir to the config file if it has a line and is a valid path
   if (base_dir_found != std::string::npos) {
-    int cur_position = full_file[base_dir_found] + 14;
-    for (int i = cur_position; i < full_file.size(); i++) {
+    int cur_position = base_dir_found + 5;
+    std::string new_home;
+
+    while (full_file[cur_position] != '\n') {
+      new_home += full_file[cur_position];
+      cur_position++;
+    }
+
+    if (fs::exists(new_home)) {
+      config.base_dir = new_home;
+    } else {
+      std::string err_message = "Invalid path set in config file";
+      write(STDOUT_FILENO, err_message.c_str(), err_message.size());
+      die("Config");
     }
   }
+
   if (hidden_found != std::string::npos) {
     size_t cur_position = hidden_found + 7;
     size_t found = full_file.find("false");
