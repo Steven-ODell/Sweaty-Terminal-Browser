@@ -45,7 +45,7 @@ struct Placement {
 
 extern Term Global;
 
-void initProgram(Paths &paths, Placement &Pos);
+void initProgram(const char *home_env, Paths &paths, Placement &Pos);
 
 void disableRawMode();
 
@@ -65,4 +65,6 @@ void check_start_path(Paths &paths, Placement &Pos);
 
 void handle_arg(std::string &argument, Paths &paths);
 
-void loadConfig();
+void loadConfig(const char *home_env);
+
+void parseConfigFile(std::filesystem::path &config_path);

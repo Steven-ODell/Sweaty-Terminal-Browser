@@ -3,6 +3,8 @@
 #include "path_handle.h"
 #include "search.h"
 #include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <string>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -377,12 +379,10 @@ void handle_arg(std::string &argument, Paths &paths) {
   }
 }
 
-void initProgram(Paths &paths, Placement &Pos) {
+void initProgram(const char *home_env, Paths &paths, Placement &Pos) {
 
   // Set the path of the folder you are in to the browser directory
   paths.full_path = fs::current_path().string();
-
-  const char *home_env = std::getenv("HOME");
 
   if (!(config.base_dir == "")) {
     if (config.base_dir[config.base_dir.size() - 1] == '/') {
@@ -415,8 +415,61 @@ void initProgram(Paths &paths, Placement &Pos) {
     paths.base_dir = home_env;
   }
 
+  if (!config.hidden) {
+    Global.hidden = false;
+  }
+
   // Loop through and set the initial search array for searching later
   setPathsForBaseSearch(paths);
 }
 
-void loadConfig() {}
+void loadConfig(const char *home_env) {
+  if (home_env != nullptr) {
+    // Check if the config file exists in the correct path
+    std::string config_tail = "/.config/Cexp/config.toml";
+    fs::path config_path = home_env + config_tail;
+    if (fs::exists(config_path)) {
+      parseConfigFile(config_path);
+    } else {
+      // Load defaults
+    }
+  } else {
+    // Load defaults
+  }
+}
+
+void parseConfigFile(fs::path &config_path) {
+  // load file
+  std::ifstream file(config_path);
+  std::string while_file;
+  std::string full_file;
+
+  // walk and look for keywords
+  while (file >> while_file) {
+    full_file += while_file;
+  }
+
+  size_t base_dir_found = full_file.find("home=");
+  size_t hidden_found = full_file.find("hidden=");
+
+  size_t hidden_flag_color_found = full_file.find("hidden_flag_color=");
+  size_t header_color_found = full_file.find("header_color=");
+  size_t default_color_found = full_file.find("default_color=");
+
+  if (base_dir_found != std::string::npos) {
+    int cur_position = full_file[base_dir_found] + 14;
+    for (int i = cur_position; i < full_file.size(); i++) {
+    }
+  }
+  if (hidden_found != std::string::npos) {
+    size_t cur_position = hidden_found + 7;
+    size_t found = full_file.find("false");
+    if (found != std::string::npos && found == cur_position) {
+      config.hidden = false;
+    }
+  }
+
+  // if you find a keyword check the value
+
+  // if the value is a valid choice set it at init
+}
