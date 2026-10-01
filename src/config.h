@@ -53,11 +53,11 @@ struct Config {
   */
 
   // Main text color
-  const std::string color_reset = "\x1b[0m";
+  std::string color_reset = "\x1b[0m";
 
   // Directory header color
-  const std::string dir_color = "\x1b[7;35m";
+  std::string dir_color = "\x1b[7;35m";
 
   // Hidden flag color
-  const std::string hidden_flag_color = "\x1b[35m";
+  std::string hidden_flag_color = "\x1b[35m";
 };

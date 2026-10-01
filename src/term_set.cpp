@@ -5,7 +5,6 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <ostream>
 #include <string>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -478,11 +477,52 @@ void parseConfigFile(fs::path &config_path) {
   }
 
   if (hidden_found != std::string::npos) {
+
     size_t cur_position = hidden_found + 7;
     size_t found = full_file.find("false");
+
     if (found != std::string::npos && found == cur_position) {
       config.hidden = false;
     }
+  }
+
+  if (hidden_flag_color_found != std::string::npos) {
+
+    int cur_position = hidden_flag_color_found + 18;
+    std::string color;
+
+    while (full_file[cur_position] != '\n') {
+      color += full_file[cur_position];
+      cur_position++;
+    }
+
+    config.hidden_flag_color = "\x1b[" + color + "m";
+  }
+
+  if (header_color_found != std::string::npos) {
+
+    int cur_position = header_color_found + 13;
+    std::string color;
+
+    while (full_file[cur_position] != '\n') {
+      color += full_file[cur_position];
+      cur_position++;
+    }
+
+    config.dir_color = "\x1b[" + color + "m";
+  }
+
+  if (default_color_found != std::string::npos) {
+
+    int cur_position = default_color_found + 14;
+    std::string color;
+
+    while (full_file[cur_position] != '\n') {
+      color += full_file[cur_position];
+      cur_position++;
+    }
+
+    config.color_reset = "\x1b[" + color + "m";
   }
 
   // if you find a keyword check the value
