@@ -156,17 +156,16 @@ void processKeypress(Paths &paths, Placement &Pos) {
         Global.search_selector = false;
       } else {
         Pos.window_offset = 0;
+        Pos.cur_row = 0;
         if (paths.search_in == "") {
-          std::string error_mes = "» Error: Field was empty \x1b[";
-          error_mes += std::to_string(Pos.screen_rows) + ";13H";
+          std::string error_mes = "» Error: Field was empty ";
+          error_mes += moveTo(Pos.screen_rows, 13);
           write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
           sleep(1);
 
           break;
         }
-        Pos.cur_row = 0;
-        Pos.window_offset = 0;
         Global.search_selector = true;
         setSearchPath(paths);
       }
@@ -263,6 +262,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     // Backspace
     case '\x7f': {
       Global.search_selector = false;
+      Pos.window_offset = 0;
       if (paths.search_in.size() > 0) {
         paths.search_in.pop_back();
         setSearchPath(paths);
@@ -272,6 +272,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
 
     default: {
       Global.search_selector = false;
+      Pos.window_offset = 0;
       paths.search_in += c;
       setSearchPath(paths);
       break;

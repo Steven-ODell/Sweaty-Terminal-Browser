@@ -68,3 +68,5 @@ void handle_arg(std::string &argument, Paths &paths);
 void loadConfig(const char *home_env);
 
 void parseConfigFile(std::filesystem::path &config_path);
+
+std::string moveTo(const int row, const int col);

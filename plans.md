@@ -35,7 +35,6 @@
 There is started but not done. base_dir goes in it so nobody is stuck with $HOME, hidden files on or off by default, and keybinds will come later on. Read it from ~/.config/Cexp/config.toml on startup and fall back to defaults if its not there. Once it exists the no $HOME error can actually tell people to set base_dir.
 
 ## Tests
-
 - More tests for path_handle, they take a path and give a path so theres nothing to set up
 - When scoring changes on purpose update the expected values after checking every ranking that moved, not just to make it pass
 

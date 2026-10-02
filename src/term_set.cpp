@@ -4,14 +4,14 @@
 #include "search.h"
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 #include <string>
 #include <sys/wait.h>
 #include <unistd.h>
 
 Term Global;
 Config config;
-std::string move_cursor_corner = "\x1b[2J\x1b[H";
+
+std::string clear_and_to_corner = "\x1b[2J\x1b[H";
 
 /*
  This termios setup was adapted from and uses the similar functions and names
@@ -21,7 +21,7 @@ std::string move_cursor_corner = "\x1b[2J\x1b[H";
 
 void die(const char *s) {
 
-  write(STDOUT_FILENO, move_cursor_corner.c_str(), move_cursor_corner.size());
+  write(STDOUT_FILENO, clear_and_to_corner.c_str(), clear_and_to_corner.size());
   perror(s);
   exit(1);
 }
@@ -100,11 +100,14 @@ int getWinSize(int *rows, int *cols) {
   }
 }
 
+// TODO:
+// Go through here and get rid of all the prompt magic numbers and make
+// them .size()
 void refreshScreen(Paths &paths, Placement &Pos) {
 
   // Clear screen and set cursor to top corner and then write the current path
   // Unwrap comment for "Debug" prints
-  std::string full_buf = move_cursor_corner + config.dir_color +
+  std::string full_buf = clear_and_to_corner + config.dir_color +
                          paths.full_path.filename().string() +
                          config.color_reset
 
@@ -126,7 +129,7 @@ void refreshScreen(Paths &paths, Placement &Pos) {
 
     // Put the cursor on the correct row with Global.cx
 
-    full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";1H";
+    full_buf += moveTo(Pos.screen_rows, 1);
     full_buf += "'?' for Keys \x1b[" +
                 std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
     break;
@@ -136,7 +139,7 @@ void refreshScreen(Paths &paths, Placement &Pos) {
 
     full_buf += drawRows(paths, Pos);
 
-    full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";1H" + "Rename '" +
+    full_buf += moveTo(Pos.screen_rows, 1) + "Rename '" +
                 paths.entries[Pos.cur_row].path().filename().string() +
                 "' to: " + Global.new_name;
 
@@ -146,8 +149,7 @@ void refreshScreen(Paths &paths, Placement &Pos) {
         paths.entries[Pos.cur_row].path().filename().string().size();
 
     // Put the cursor on the correct row at the bottom offset by the name
-    full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";" +
-                std::to_string(name_offset) + "H";
+    full_buf += moveTo(Pos.screen_rows, name_offset);
 
     break;
   }
@@ -156,15 +158,14 @@ void refreshScreen(Paths &paths, Placement &Pos) {
 
     full_buf += drawRows(paths, Pos);
 
-    full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";1H" +
+    full_buf += moveTo(Pos.screen_rows, 1) +
                 "New folder name: " + Global.brand_new_name;
 
     // Calculate cursor offset
     int name_offset = Global.brand_new_name.size() + 18;
 
     // Put the cursor on the correct row at the bottom offset by the name
-    full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";" +
-                std::to_string(name_offset) + "H";
+    full_buf += moveTo(Pos.screen_rows, name_offset);
 
     break;
   }
@@ -173,8 +174,7 @@ void refreshScreen(Paths &paths, Placement &Pos) {
 
     full_buf += drawRows(paths, Pos);
 
-    full_buf += "\x1b[" + std::to_string(Pos.screen_rows) +
-                ";1H\x1b[31m"
+    full_buf += moveTo(Pos.screen_rows, 1) + config.delete_prompt_color +
                 "Are you sure you want to delete '" +
                 paths.entries[Pos.cur_row].path().filename().string() +
                 config.color_reset + "': [y/n]";
@@ -184,8 +184,7 @@ void refreshScreen(Paths &paths, Placement &Pos) {
         42 + paths.entries[Pos.cur_row].path().filename().string().size();
 
     // Put the cursor on the correct row and column with offset
-    full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";" +
-                std::to_string(name_offset) + "H";
+    full_buf += moveTo(Pos.screen_rows, name_offset);
 
     break;
   }
@@ -238,33 +237,27 @@ void refreshScreen(Paths &paths, Placement &Pos) {
 
   case State::Search: {
 
-    full_buf += move_cursor_corner;
+    full_buf += clear_and_to_corner;
+
+    full_buf += drawSearchRows(paths, Pos);
+
+    full_buf += moveTo(Pos.screen_rows, 1);
+
+    std::string search_prompt = "Search for: ";
+
+    full_buf += search_prompt + paths.search_in;
 
     if (!Global.search_selector) {
 
-      Pos.window_offset = 0;
-
-      full_buf += drawSearchRows(paths, Pos);
-
-      full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";1H" +
-                  "Search for: " + paths.search_in;
-
       // Calculate offset
-      int search_offset = paths.search_in.size() + 13;
+      int search_offset = paths.search_in.size() + search_prompt.size();
 
       // Put the cursor on the correct row with screen_rows and offset
-      full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";" +
-                  std::to_string(search_offset) + "H";
+      moveTo(Pos.screen_rows, search_offset);
     } else {
 
-      full_buf += drawSearchRows(paths, Pos);
-
-      full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";1H" +
-                  "Search for: " + paths.search_in;
-
       // Put the cursor on the correct row and first comuln
-      full_buf +=
-          "\x1b[" + std::to_string(Pos.cur_row - Pos.window_offset + 1) + ";1H";
+      full_buf += moveTo(Pos.cur_row - Pos.window_offset + 1, 1);
     }
 
     break;
@@ -277,11 +270,11 @@ void refreshScreen(Paths &paths, Placement &Pos) {
 
   if (Global.hidden) {
 
-    full_buf += "\x1b[" + std::to_string(Pos.screen_rows) + ";1H";
+    full_buf += moveTo(Pos.screen_rows, 1);
 
     full_buf += config.hidden_flag_color + "Hidden " + config.color_reset +
-                std::to_string(paths.hidden_count) + " | '?' for Keys \x1b[" +
-                std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+                std::to_string(paths.hidden_count) + " | '?' for Keys" +
+                moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
   }
 
   write(STDOUT_FILENO, full_buf.c_str(), full_buf.size());
@@ -450,16 +443,26 @@ void parseConfigFile(fs::path &config_path) {
     full_file += while_file + '\n';
   }
 
-  size_t base_dir_found = full_file.find("home=");
-  size_t hidden_found = full_file.find("hidden=");
+  std::string base_dir = "home=";
+  std::string hidden = "hidden=";
+  std::string hidden_flag = "hidden_flag_color=";
+  std::string header = "header_color=";
+  std::string default_color = "default_color=";
+  std::string delete_prompt = "delete_prompt_color=";
 
-  size_t hidden_flag_color_found = full_file.find("hidden_flag_color=");
-  size_t header_color_found = full_file.find("header_color=");
-  size_t default_color_found = full_file.find("default_color=");
+  size_t base_dir_found = full_file.find(base_dir);
+  size_t hidden_found = full_file.find(hidden);
+
+  size_t hidden_flag_color_found = full_file.find(hidden_flag);
+  size_t header_color_found = full_file.find(header);
+  size_t default_color_found = full_file.find(default_color);
+  size_t delete_prompt_color_found = full_file.find(delete_prompt);
+
+  // if you find a keyword check the value
 
   // Set base_dir to the config file if it has a line and is a valid path
   if (base_dir_found != std::string::npos) {
-    int cur_position = base_dir_found + 5;
+    int cur_position = base_dir_found + base_dir.size();
     std::string new_home;
 
     while (full_file[cur_position] != '\n') {
@@ -478,7 +481,7 @@ void parseConfigFile(fs::path &config_path) {
 
   if (hidden_found != std::string::npos) {
 
-    size_t cur_position = hidden_found + 7;
+    size_t cur_position = hidden_found + hidden.size();
     size_t found = full_file.find("false");
 
     if (found != std::string::npos && found == cur_position) {
@@ -488,7 +491,7 @@ void parseConfigFile(fs::path &config_path) {
 
   if (hidden_flag_color_found != std::string::npos) {
 
-    int cur_position = hidden_flag_color_found + 18;
+    int cur_position = hidden_flag_color_found + hidden_flag.size();
     std::string color;
 
     while (full_file[cur_position] != '\n') {
@@ -501,7 +504,7 @@ void parseConfigFile(fs::path &config_path) {
 
   if (header_color_found != std::string::npos) {
 
-    int cur_position = header_color_found + 13;
+    int cur_position = header_color_found + header.size();
     std::string color;
 
     while (full_file[cur_position] != '\n') {
@@ -514,7 +517,7 @@ void parseConfigFile(fs::path &config_path) {
 
   if (default_color_found != std::string::npos) {
 
-    int cur_position = default_color_found + 14;
+    int cur_position = default_color_found + default_color.size();
     std::string color;
 
     while (full_file[cur_position] != '\n') {
@@ -525,7 +528,25 @@ void parseConfigFile(fs::path &config_path) {
     config.color_reset = "\x1b[" + color + "m";
   }
 
-  // if you find a keyword check the value
+  if (delete_prompt_color_found != std::string::npos) {
 
-  // if the value is a valid choice set it at init
+    int cur_position = delete_prompt_color_found + delete_prompt.size();
+    std::string color;
+
+    while (full_file[cur_position] != '\n') {
+      color += full_file[cur_position];
+      cur_position++;
+    }
+
+    config.delete_prompt_color = "\x1b[" + color + "m";
+  }
+}
+
+std::string moveTo(const int row, const int col) {
+  std::string new_position;
+
+  new_position =
+      "\x1b[" + std::to_string(row) + ";" + std::to_string(col) + "H";
+
+  return new_position;
 }

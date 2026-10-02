@@ -20,7 +20,7 @@ struct Config {
   /* TODO:
   // Search algo choice
   // Choices are "fuzzy levenstein", "sweaty", or "sub"
-  const std::string search_algo = "sweaty";
+  std::string search_algo = "sweaty";
    */
 
   // ----------COLORS----------
@@ -56,8 +56,11 @@ struct Config {
   std::string color_reset = "\x1b[0m";
 
   // Directory header color
-  std::string dir_color = "\x1b[7;35m";
+  std::string dir_color = "\x1b[7;32m";
 
   // Hidden flag color
-  std::string hidden_flag_color = "\x1b[35m";
+  std::string hidden_flag_color = "\x1b[31m";
+
+  // Delete prompt color
+  std::string delete_prompt_color = "\x1b[31m";
 };
