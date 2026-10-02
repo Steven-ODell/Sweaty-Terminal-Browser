@@ -60,8 +60,7 @@ void loadPreviousPath(Paths &paths, Placement &Pos) {
 
     } else {
 
-      std::string error_mes =
-          "» Cant go further back than the home directory \x1b[";
+      std::string error_mes = "» Cant go further back than the home directory ";
       error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
       write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
@@ -114,7 +113,7 @@ void checkIfFile(const fs::path &path_to_check, Paths &paths, Placement &Pos) {
                EXT == ".fbx" || EXT == ".glb" || EXT == ".dwg") {
 
       std::string error_mes =
-          "» Error this file type can not be opened with an editor \x1b[";
+          "» Error this file type can not be opened with an editor ";
       error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
       write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
@@ -135,7 +134,7 @@ void checkIfFile(const fs::path &path_to_check, Paths &paths, Placement &Pos) {
   } else {
 
     std::string error_mes =
-        "» Error this file type can not be opened with an editor \x1b[";
+        "» Error this file type can not be opened with an editor ";
     error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
     write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
@@ -201,7 +200,7 @@ void renamePath(Paths &paths, Placement &Pos) {
 
   if (Global.new_name == "") {
 
-    std::string error_mes = "Error: Field was empty \x1b[";
+    std::string error_mes = "Error: Field was empty ";
     error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
     write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
@@ -221,7 +220,7 @@ void renamePath(Paths &paths, Placement &Pos) {
     } catch (const fs::filesystem_error &e) {
 
       std::string err_what = e.what();
-      std::string error_mes = "» Error: " + err_what + "\x1b[";
+      std::string error_mes = "» Error: " + err_what;
       error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
       write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
@@ -237,7 +236,7 @@ void deletePath(Paths &paths, Placement &Pos) {
 
     if (total_removed == 1) {
 
-      std::string del_mes = " Folder deleted \x1b[";
+      std::string del_mes = " Folder deleted ";
       del_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
       write(STDOUT_FILENO, del_mes.c_str(), del_mes.size());
 
@@ -245,7 +244,7 @@ void deletePath(Paths &paths, Placement &Pos) {
 
     } else {
 
-      std::string del_mes = " Folder/files deleted \x1b[";
+      std::string del_mes = " Folder/files deleted ";
       del_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
       write(STDOUT_FILENO, del_mes.c_str(), del_mes.size());
 
@@ -255,7 +254,7 @@ void deletePath(Paths &paths, Placement &Pos) {
   } catch (const fs::filesystem_error &e) {
 
     std::string err_what = e.what();
-    std::string error_mes = " Error: " + err_what + "\x1b[";
+    std::string error_mes = " Error: " + err_what;
     error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
     write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
@@ -270,7 +269,7 @@ void deletePath(Paths &paths, Placement &Pos) {
 void addNewPath(Paths &paths, Placement &Pos) {
   if (Global.brand_new_name == "") {
 
-    std::string error_mes = "Error: Field was empty \x1b[";
+    std::string error_mes = "Error: Field was empty ";
     error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
     write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
@@ -292,7 +291,7 @@ void addNewPath(Paths &paths, Placement &Pos) {
 
       std::string err_what = e.what();
 
-      std::string error_mes = "Error: " + err_what + "\x1b[";
+      std::string error_mes = "Error: " + err_what;
       error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
       write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 

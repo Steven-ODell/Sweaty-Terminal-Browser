@@ -202,7 +202,6 @@ void setPathsForBaseSearch(Paths &paths) {
   fs::recursive_directory_iterator done;
 
   while (cur_dir != done) {
-
     if (!Global.hidden ||
         (*cur_dir).path().string().find("/.") == std::string::npos) {
 
@@ -527,10 +526,10 @@ void drawSearch(std::string &full_buf, Paths &paths, Placement &Pos) {
   if (!Global.search_selector) {
 
     // Calculate offset
-    int search_offset = paths.search_in.size() + search_prompt.size();
+    int search_offset = paths.search_in.size() + search_prompt.size() + 1;
 
     // Put the cursor on the correct row with screen_rows and offset
-    moveTo(Pos.screen_rows, search_offset);
+    full_buf += moveTo(Pos.screen_rows, search_offset);
   } else {
 
     // Put the cursor on the correct row and first comuln

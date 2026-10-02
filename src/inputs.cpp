@@ -54,7 +54,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     case 'd': {
       if (paths.entries.empty()) {
 
-        std::string error_mes = "Nothing to delete \x1b[" +
+        std::string error_mes = "Nothing to delete " +
                                 moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
         write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
@@ -108,8 +108,8 @@ void processKeypress(Paths &paths, Placement &Pos) {
     // Enter
     case '\r': {
       if (paths.entries.empty()) {
-        std::string error_mes = "Nothing to open \x1b[" +
-                                moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
+        std::string error_mes =
+            "Nothing to open " + moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
         write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
         sleep(1);
