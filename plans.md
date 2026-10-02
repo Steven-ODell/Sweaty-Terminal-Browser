@@ -14,8 +14,8 @@
  [x]Multiple lines for search items breaks curor count
  [x]Bug when leaving nvim you lose track of your hidden state
  [x]Arrow keys come in as esc not catching the end of the sequence
- [x]Rework state so that it is one write to the buffer per input
-[ ]Search doesnt show hidden currently. Create some kind of toggle for it but that means loading them all
+ [x]Rework state so that it is one write to the buffer per input [reworked again]
+[ ]Search doesn't show hidden currently. Create some kind of toggle for it but that means loading them all
 [ ] resize handling (the event loop below fixes this)
  [ ]Rework Search
  [ ]Preview Mode
@@ -23,7 +23,7 @@
 [ ] Add keybindings and other options to the config. (Currently | base_dir and hidden on launch)
  [ ]Work on color implementations
 [ ] Truncation at term_set drawRows() and search drawSearchRows() cuts to screen_cols - 2 then adds 3 dots so it works now because the first column is two bits but need to count columns not bits. Works but fragile (Redo)
-[ ] Fix bug with '?' in search defaulting the return to browser as hidden false. Need a check inside the keys state and inside the inputs for if you are in search then ignore the hidden flag saving
+[x] Fix bug with '?' in search defaulting the return to browser as hidden false. Need a check inside the keys state and inside the inputs for if you are in search then ignore the hidden flag saving
 [ ] No handling for $EDITOR or $VISUAL always set to nvim currently. Want to add ability to collapse from $VISUAL down to vi. $VISUAL -> $EDITOR -> nvim -> vim -> nano -> vi -> error message. Only if nothing set in .config
 
 # Next plans

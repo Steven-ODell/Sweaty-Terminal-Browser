@@ -225,7 +225,6 @@ void processKeypress(Paths &paths, Placement &Pos) {
 
     // Key Binds
     case '?': {
-      Global.hidden_holder = Global.hidden;
       Global.previous_state = Global.state;
       Global.hidden = false;
       Global.state = State::Keys;

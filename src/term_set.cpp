@@ -170,7 +170,7 @@ void refreshScreen(Paths &paths, Placement &Pos) {
   }
   }
 
-  if (Global.hidden) {
+  if (Global.hidden && !(State::Search)) {
 
     full_buf += moveTo(Pos.screen_rows, 1);
 
