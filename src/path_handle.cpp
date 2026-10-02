@@ -36,10 +36,8 @@ void loadEntriesFrPath(Paths &paths, Placement &Pos) {
 
       if (paths.full_path != paths.base_dir) {
 
-        std::string error_mes = "» Folder is empty or only contains hidden"
-                                "\x1b[";
-        error_mes +=
-            std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+        std::string error_mes = "» Folder is empty or only contains hidden";
+        error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
         write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
         sleep(1);
@@ -64,7 +62,7 @@ void loadPreviousPath(Paths &paths, Placement &Pos) {
 
       std::string error_mes =
           "» Cant go further back than the home directory \x1b[";
-      error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+      error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
       write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
       sleep(1);
@@ -117,7 +115,7 @@ void checkIfFile(const fs::path &path_to_check, Paths &paths, Placement &Pos) {
 
       std::string error_mes =
           "» Error this file type can not be opened with an editor \x1b[";
-      error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+      error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
       write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
       sleep(1);
@@ -138,7 +136,7 @@ void checkIfFile(const fs::path &path_to_check, Paths &paths, Placement &Pos) {
 
     std::string error_mes =
         "» Error this file type can not be opened with an editor \x1b[";
-    error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+    error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
     write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
     sleep(1);
@@ -204,7 +202,7 @@ void renamePath(Paths &paths, Placement &Pos) {
   if (Global.new_name == "") {
 
     std::string error_mes = "Error: Field was empty \x1b[";
-    error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+    error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
     write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
     sleep(1);
@@ -224,7 +222,7 @@ void renamePath(Paths &paths, Placement &Pos) {
 
       std::string err_what = e.what();
       std::string error_mes = "» Error: " + err_what + "\x1b[";
-      error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+      error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
       write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
       sleep(2);
@@ -240,7 +238,7 @@ void deletePath(Paths &paths, Placement &Pos) {
     if (total_removed == 1) {
 
       std::string del_mes = " Folder deleted \x1b[";
-      del_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+      del_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
       write(STDOUT_FILENO, del_mes.c_str(), del_mes.size());
 
       sleep(1);
@@ -248,7 +246,7 @@ void deletePath(Paths &paths, Placement &Pos) {
     } else {
 
       std::string del_mes = " Folder/files deleted \x1b[";
-      del_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+      del_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
       write(STDOUT_FILENO, del_mes.c_str(), del_mes.size());
 
       sleep(1);
@@ -258,7 +256,7 @@ void deletePath(Paths &paths, Placement &Pos) {
 
     std::string err_what = e.what();
     std::string error_mes = " Error: " + err_what + "\x1b[";
-    error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+    error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
     write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
     sleep(2);
@@ -273,7 +271,7 @@ void addNewPath(Paths &paths, Placement &Pos) {
   if (Global.brand_new_name == "") {
 
     std::string error_mes = "Error: Field was empty \x1b[";
-    error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+    error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
     write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
     sleep(1);
@@ -295,7 +293,7 @@ void addNewPath(Paths &paths, Placement &Pos) {
       std::string err_what = e.what();
 
       std::string error_mes = "Error: " + err_what + "\x1b[";
-      error_mes += std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+      error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
       write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
       sleep(2);

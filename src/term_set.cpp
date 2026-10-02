@@ -11,8 +11,6 @@
 Term Global;
 Config config;
 
-std::string clear_and_to_corner = "\x1b[2J\x1b[H";
-
 /*
  This termios setup was adapted from and uses the similar functions and names
  as: Build Your Own Text Editor by Jeremy Ruten
@@ -21,7 +19,8 @@ std::string clear_and_to_corner = "\x1b[2J\x1b[H";
 
 void die(const char *s) {
 
-  write(STDOUT_FILENO, clear_and_to_corner.c_str(), clear_and_to_corner.size());
+  write(STDOUT_FILENO, Global.clear_and_to_corner.c_str(),
+        Global.clear_and_to_corner.size());
   perror(s);
   exit(1);
 }
@@ -107,7 +106,7 @@ void refreshScreen(Paths &paths, Placement &Pos) {
 
   // Clear screen and set cursor to top corner and then write the current path
   // Unwrap comment for "Debug" prints
-  std::string full_buf = clear_and_to_corner + config.dir_color +
+  std::string full_buf = Global.clear_and_to_corner + config.dir_color +
                          paths.full_path.filename().string() +
                          config.color_reset
 
@@ -125,140 +124,43 @@ void refreshScreen(Paths &paths, Placement &Pos) {
   switch (Global.state) {
 
   case State::Browser: {
-    full_buf += drawRows(paths, Pos);
 
-    // Put the cursor on the correct row with Global.cx
+    full_buf += drawBrowser(full_buf, paths, Pos);
 
-    full_buf += moveTo(Pos.screen_rows, 1);
-    full_buf += "'?' for Keys \x1b[" +
-                std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
     break;
   }
 
   case State::Rename: {
 
-    full_buf += drawRows(paths, Pos);
-
-    full_buf += moveTo(Pos.screen_rows, 1) + "Rename '" +
-                paths.entries[Pos.cur_row].path().filename().string() +
-                "' to: " + Global.new_name;
-
-    // Calculate cursor offset
-    int name_offset =
-        Global.new_name.size() + 15 +
-        paths.entries[Pos.cur_row].path().filename().string().size();
-
-    // Put the cursor on the correct row at the bottom offset by the name
-    full_buf += moveTo(Pos.screen_rows, name_offset);
+    full_buf += drawRename(full_buf, paths, Pos);
 
     break;
   }
 
   case State::Add: {
 
-    full_buf += drawRows(paths, Pos);
-
-    full_buf += moveTo(Pos.screen_rows, 1) +
-                "New folder name: " + Global.brand_new_name;
-
-    // Calculate cursor offset
-    int name_offset = Global.brand_new_name.size() + 18;
-
-    // Put the cursor on the correct row at the bottom offset by the name
-    full_buf += moveTo(Pos.screen_rows, name_offset);
+    full_buf += drawAdd(full_buf, paths, Pos);
 
     break;
   }
 
   case State::Delete: {
 
-    full_buf += drawRows(paths, Pos);
-
-    full_buf += moveTo(Pos.screen_rows, 1) + config.delete_prompt_color +
-                "Are you sure you want to delete '" +
-                paths.entries[Pos.cur_row].path().filename().string() +
-                config.color_reset + "': [y/n]";
-
-    // Calculate cursor offset
-    int name_offset =
-        42 + paths.entries[Pos.cur_row].path().filename().string().size();
-
-    // Put the cursor on the correct row and column with offset
-    full_buf += moveTo(Pos.screen_rows, name_offset);
+    full_buf += drawDelete(full_buf, paths, Pos);
 
     break;
   }
 
   case State::Keys: {
 
-    Global.hidden = false;
-
-    if (Global.previous_state == State::Search) {
-
-      full_buf = "\x1b[2J\x1b[HSEARCH\r\n"
-                 "\r\n"
-                 "  typing:\r\n"
-                 "    any key         add to the query\r\n"
-                 "    Backspace       delete a character\r\n"
-                 "    Enter           jump to the results\r\n"
-                 "    Esc             cancel, back to browser\r\n"
-                 "\r\n"
-                 "  picking a result:\r\n"
-                 "    j / k / ↓ / ↑   down / up\r\n"
-                 "    l / → / Enter   open it\r\n"
-                 "    Esc             back to typing\r\n"
-                 "\r\n"
-                 "  ?                 this screen\r\n"
-                 "\r\n"
-                 "  press any key to go back\r\n";
-    } else {
-
-      full_buf = "\x1b[2J\x1b[HBROWSER\r\n"
-                 "\r\n"
-                 "  j / k / ↓ / ↑       down / up\r\n"
-                 "  l / o / → / Enter   open folder or file\r\n"
-                 "  h / ← / Backspace   back to parent folder\r\n"
-                 "\r\n"
-                 "  a                   new folder\r\n"
-                 "  r                   rename\r\n"
-                 "  d                   delete\r\n"
-                 "\r\n"
-                 "  H                   toggle hidden files\r\n"
-                 "  s                   search\r\n"
-                 "  ?                   this screen\r\n"
-                 "\r\n"
-                 "  q / Q / Esc         quit\r\n"
-                 "\r\n"
-                 "  press any key to go back\r\n";
-    }
+    full_buf += drawKeys(full_buf, paths, Pos);
 
     break;
   }
 
   case State::Search: {
 
-    full_buf += clear_and_to_corner;
-
-    full_buf += drawSearchRows(paths, Pos);
-
-    full_buf += moveTo(Pos.screen_rows, 1);
-
-    std::string search_prompt = "Search for: ";
-
-    full_buf += search_prompt + paths.search_in;
-
-    if (!Global.search_selector) {
-
-      // Calculate offset
-      int search_offset = paths.search_in.size() + search_prompt.size();
-
-      // Put the cursor on the correct row with screen_rows and offset
-      moveTo(Pos.screen_rows, search_offset);
-    } else {
-
-      // Put the cursor on the correct row and first comuln
-      full_buf += moveTo(Pos.cur_row - Pos.window_offset + 1, 1);
-    }
+    full_buf += drawSearch(full_buf, paths, Pos);
 
     break;
   }
@@ -549,4 +451,143 @@ std::string moveTo(const int row, const int col) {
       "\x1b[" + std::to_string(row) + ";" + std::to_string(col) + "H";
 
   return new_position;
+}
+
+std::string drawBrowser(std::string &full_buf, Paths &paths, Placement &Pos) {
+
+  full_buf += drawRows(paths, Pos);
+
+  // Put the cursor on the correct row with Global.cx
+
+  full_buf += moveTo(Pos.screen_rows, 1);
+  full_buf += "'?' for Keys \x1b[" +
+              std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+
+  return full_buf;
+}
+
+std::string drawRename(std::string &full_buf, Paths &paths, Placement &Pos) {
+
+  full_buf += drawRows(paths, Pos);
+
+  full_buf += moveTo(Pos.screen_rows, 1) + "Rename '" +
+              paths.entries[Pos.cur_row].path().filename().string() +
+              "' to: " + Global.new_name;
+
+  // Calculate cursor offset
+  int name_offset =
+      Global.new_name.size() + 15 +
+      paths.entries[Pos.cur_row].path().filename().string().size();
+
+  // Put the cursor on the correct row at the bottom offset by the name
+  full_buf += moveTo(Pos.screen_rows, name_offset);
+
+  return full_buf;
+}
+
+std::string drawAdd(std::string &full_buf, Paths &paths, Placement &Pos) {
+
+  full_buf += drawRows(paths, Pos);
+
+  full_buf +=
+      moveTo(Pos.screen_rows, 1) + "New folder name: " + Global.brand_new_name;
+
+  // Calculate cursor offset
+  int name_offset = Global.brand_new_name.size() + 18;
+
+  // Put the cursor on the correct row at the bottom offset by the name
+  full_buf += moveTo(Pos.screen_rows, name_offset);
+
+  return full_buf;
+}
+
+std::string drawDelete(std::string &full_buf, Paths &paths, Placement &Pos) {
+
+  full_buf += drawRows(paths, Pos);
+
+  full_buf += moveTo(Pos.screen_rows, 1) + config.delete_prompt_color +
+              "Are you sure you want to delete '" +
+              paths.entries[Pos.cur_row].path().filename().string() +
+              config.color_reset + "': [y/n]";
+
+  // Calculate cursor offset
+  int name_offset =
+      42 + paths.entries[Pos.cur_row].path().filename().string().size();
+
+  // Put the cursor on the correct row and column with offset
+  full_buf += moveTo(Pos.screen_rows, name_offset);
+
+  return full_buf;
+}
+
+std::string drawSearch(std::string &full_buf, Paths &paths, Placement &Pos) {
+
+  full_buf += Global.clear_and_to_corner;
+
+  full_buf += drawSearchRows(paths, Pos);
+
+  full_buf += moveTo(Pos.screen_rows, 1);
+
+  std::string search_prompt = "Search for: ";
+
+  full_buf += search_prompt + paths.search_in;
+
+  if (!Global.search_selector) {
+
+    // Calculate offset
+    int search_offset = paths.search_in.size() + search_prompt.size();
+
+    // Put the cursor on the correct row with screen_rows and offset
+    moveTo(Pos.screen_rows, search_offset);
+  } else {
+
+    // Put the cursor on the correct row and first comuln
+    full_buf += moveTo(Pos.cur_row - Pos.window_offset + 1, 1);
+  }
+
+  return full_buf;
+}
+
+std::string drawKeys(std::string &full_buf, Paths &paths, Placement &Pos) {
+
+  if (Global.previous_state == State::Search) {
+
+    full_buf = "\x1b[2J\x1b[HSEARCH\r\n"
+               "\r\n"
+               "  typing:\r\n"
+               "    any key         add to the query\r\n"
+               "    Backspace       delete a character\r\n"
+               "    Enter           jump to the results\r\n"
+               "    Esc             cancel, back to browser\r\n"
+               "\r\n"
+               "  picking a result:\r\n"
+               "    j / k / ↓ / ↑   down / up\r\n"
+               "    l / → / Enter   open it\r\n"
+               "    Esc             back to typing\r\n"
+               "\r\n"
+               "  ?                 this screen\r\n"
+               "\r\n"
+               "  press any key to go back\r\n";
+  } else {
+
+    full_buf = "\x1b[2J\x1b[HBROWSER\r\n"
+               "\r\n"
+               "  j / k / ↓ / ↑       down / up\r\n"
+               "  l / o / → / Enter   open folder or file\r\n"
+               "  h / ← / Backspace   back to parent folder\r\n"
+               "\r\n"
+               "  a                   new folder\r\n"
+               "  r                   rename\r\n"
+               "  d                   delete\r\n"
+               "\r\n"
+               "  H                   toggle hidden files\r\n"
+               "  s                   search\r\n"
+               "  ?                   this screen\r\n"
+               "\r\n"
+               "  q / Q / Esc         quit\r\n"
+               "\r\n"
+               "  press any key to go back\r\n";
+  }
+
+  return full_buf;
 }

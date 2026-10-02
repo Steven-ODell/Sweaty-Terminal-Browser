@@ -2,6 +2,7 @@
 #include <asm-generic/ioctls.h>
 #include <fcntl.h>
 #include <filesystem>
+#include <string>
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
@@ -29,6 +30,7 @@ struct Term {
   std::string del_choice = "";
   std::string brand_new_name = "";
   std::string new_name = "";
+  std::string clear_and_to_corner = "\x1b[2J\x1b[H";
   bool search_selector = false;
   bool hidden = true;
   bool hidden_holder = hidden;
@@ -70,3 +72,15 @@ void loadConfig(const char *home_env);
 void parseConfigFile(std::filesystem::path &config_path);
 
 std::string moveTo(const int row, const int col);
+
+std::string drawBrowser(std::string &full_buf, Paths &paths, Placement &Pos);
+
+std::string drawRename(std::string &full_buf, Paths &paths, Placement &Pos);
+
+std::string drawAdd(std::string &full_buf, Paths &paths, Placement &Pos);
+
+std::string drawDelete(std::string &full_buf, Paths &paths, Placement &Pos);
+
+std::string drawSearch(std::string &full_buf, Paths &paths, Placement &Pos);
+
+std::string drawKeys(std::string &full_buf, Paths &paths, Placement &Pos);

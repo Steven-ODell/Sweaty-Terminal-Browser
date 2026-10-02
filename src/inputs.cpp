@@ -3,8 +3,6 @@
 #include "search.h"
 #include "term_set.h"
 
-std::string quit_escapes = "\x1b[2J\x1b[H";
-
 int readKey() {
 
   int nread;
@@ -36,7 +34,8 @@ void processKeypress(Paths &paths, Placement &Pos) {
     case 'Q':
     // Esc
     case '\x1b': {
-      write(STDOUT_FILENO, quit_escapes.c_str(), quit_escapes.size());
+      write(STDOUT_FILENO, Global.clear_and_to_corner.c_str(),
+            Global.clear_and_to_corner.size());
       exit(0);
       break;
     }
@@ -55,9 +54,8 @@ void processKeypress(Paths &paths, Placement &Pos) {
     case 'd': {
       if (paths.entries.empty()) {
 
-        std::string error_mes =
-            "Nothing to delete \x1b[" +
-            std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+        std::string error_mes = "Nothing to delete \x1b[" +
+                                moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
         write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
         sleep(1);
@@ -80,6 +78,16 @@ void processKeypress(Paths &paths, Placement &Pos) {
 
     // Set State to Rename
     case 'r': {
+      if (paths.entries.empty()) {
+
+        std::string error_mes = "Nothing to rename " +
+                                moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
+        write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
+
+        sleep(1);
+
+        break;
+      }
       Global.hidden_holder = Global.hidden;
       Global.hidden = false;
       Global.state = State::Rename;
@@ -101,9 +109,8 @@ void processKeypress(Paths &paths, Placement &Pos) {
     case '\r': {
       if (paths.entries.empty()) {
 
-        std::string error_mes =
-            "Nothing to open \x1b[" +
-            std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
+        std::string error_mes = "Nothing to open \x1b[" +
+                                moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
         write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
 
         sleep(1);
@@ -139,6 +146,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     case '?': {
       Global.hidden_holder = Global.hidden;
       Global.previous_state = Global.state;
+      Global.hidden = false;
       Global.state = State::Keys;
       break;
     }
@@ -220,6 +228,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     case '?': {
       Global.hidden_holder = Global.hidden;
       Global.previous_state = Global.state;
+      Global.hidden = false;
       Global.state = State::Keys;
       break;
     }
