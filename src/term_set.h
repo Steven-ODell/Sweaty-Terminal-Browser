@@ -73,14 +73,14 @@ void parseConfigFile(std::filesystem::path &config_path);
 
 std::string moveTo(const int row, const int col);
 
-std::string drawBrowser(std::string &full_buf, Paths &paths, Placement &Pos);
+void drawBrowser(std::string &full_buf, Paths &paths, Placement &Pos);
 
-std::string drawRename(std::string &full_buf, Paths &paths, Placement &Pos);
+void drawRename(std::string &full_buf, Paths &paths, Placement &Pos);
 
-std::string drawAdd(std::string &full_buf, Paths &paths, Placement &Pos);
+void drawAdd(std::string &full_buf, Paths &paths, Placement &Pos);
 
-std::string drawDelete(std::string &full_buf, Paths &paths, Placement &Pos);
+void drawDelete(std::string &full_buf, Paths &paths, Placement &Pos);
 
-std::string drawSearch(std::string &full_buf, Paths &paths, Placement &Pos);
+void drawSearch(std::string &full_buf, Paths &paths, Placement &Pos);
 
-std::string drawKeys(std::string &full_buf, Paths &paths, Placement &Pos);
+void drawKeys(std::string &full_buf, Paths &paths, Placement &Pos);

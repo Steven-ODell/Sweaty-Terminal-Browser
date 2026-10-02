@@ -125,42 +125,42 @@ void refreshScreen(Paths &paths, Placement &Pos) {
 
   case State::Browser: {
 
-    full_buf += drawBrowser(full_buf, paths, Pos);
+    drawBrowser(full_buf, paths, Pos);
 
     break;
   }
 
   case State::Rename: {
 
-    full_buf += drawRename(full_buf, paths, Pos);
+    drawRename(full_buf, paths, Pos);
 
     break;
   }
 
   case State::Add: {
 
-    full_buf += drawAdd(full_buf, paths, Pos);
+    drawAdd(full_buf, paths, Pos);
 
     break;
   }
 
   case State::Delete: {
 
-    full_buf += drawDelete(full_buf, paths, Pos);
+    drawDelete(full_buf, paths, Pos);
 
     break;
   }
 
   case State::Keys: {
 
-    full_buf += drawKeys(full_buf, paths, Pos);
+    drawKeys(full_buf, paths, Pos);
 
     break;
   }
 
   case State::Search: {
 
-    full_buf += drawSearch(full_buf, paths, Pos);
+    drawSearch(full_buf, paths, Pos);
 
     break;
   }
@@ -453,7 +453,7 @@ std::string moveTo(const int row, const int col) {
   return new_position;
 }
 
-std::string drawBrowser(std::string &full_buf, Paths &paths, Placement &Pos) {
+void drawBrowser(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   full_buf += drawRows(paths, Pos);
 
@@ -462,11 +462,9 @@ std::string drawBrowser(std::string &full_buf, Paths &paths, Placement &Pos) {
   full_buf += moveTo(Pos.screen_rows, 1);
   full_buf += "'?' for Keys \x1b[" +
               std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
-
-  return full_buf;
 }
 
-std::string drawRename(std::string &full_buf, Paths &paths, Placement &Pos) {
+void drawRename(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   full_buf += drawRows(paths, Pos);
 
@@ -481,11 +479,9 @@ std::string drawRename(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   // Put the cursor on the correct row at the bottom offset by the name
   full_buf += moveTo(Pos.screen_rows, name_offset);
-
-  return full_buf;
 }
 
-std::string drawAdd(std::string &full_buf, Paths &paths, Placement &Pos) {
+void drawAdd(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   full_buf += drawRows(paths, Pos);
 
@@ -497,11 +493,9 @@ std::string drawAdd(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   // Put the cursor on the correct row at the bottom offset by the name
   full_buf += moveTo(Pos.screen_rows, name_offset);
-
-  return full_buf;
 }
 
-std::string drawDelete(std::string &full_buf, Paths &paths, Placement &Pos) {
+void drawDelete(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   full_buf += drawRows(paths, Pos);
 
@@ -516,11 +510,9 @@ std::string drawDelete(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   // Put the cursor on the correct row and column with offset
   full_buf += moveTo(Pos.screen_rows, name_offset);
-
-  return full_buf;
 }
 
-std::string drawSearch(std::string &full_buf, Paths &paths, Placement &Pos) {
+void drawSearch(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   full_buf += Global.clear_and_to_corner;
 
@@ -544,11 +536,9 @@ std::string drawSearch(std::string &full_buf, Paths &paths, Placement &Pos) {
     // Put the cursor on the correct row and first comuln
     full_buf += moveTo(Pos.cur_row - Pos.window_offset + 1, 1);
   }
-
-  return full_buf;
 }
 
-std::string drawKeys(std::string &full_buf, Paths &paths, Placement &Pos) {
+void drawKeys(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   if (Global.previous_state == State::Search) {
 
@@ -588,6 +578,4 @@ std::string drawKeys(std::string &full_buf, Paths &paths, Placement &Pos) {
                "\r\n"
                "  press any key to go back\r\n";
   }
-
-  return full_buf;
 }
