@@ -30,11 +30,14 @@ int main(int argc, char *argv[]) {
 
   // Set the terminal to "Raw" mode
   enableRawMode();
+
   auto end = std::chrono::steady_clock::now();
   auto elapsed = end - start;
+
   std::cout << "Took " << std::chrono::duration<double>(elapsed).count()
             << " seconds to init" << std::endl;
   sleep(1);
+
   // Init the explorer sceen
   initExplorer(paths, Pos);
 

@@ -254,11 +254,7 @@ void handle_arg(std::string &argument, Paths &paths) {
 
   if (argument[0] == '/' && !found_home) {
 
-    std::string err_message = "changing " + argument;
     argument = argument.substr(1, argument.size());
-    err_message += " to " + argument;
-
-    write(STDOUT_FILENO, err_message.c_str(), err_message.size());
   }
 
   paths.full_path = paths.full_path / argument;

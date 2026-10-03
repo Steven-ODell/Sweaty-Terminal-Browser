@@ -36,6 +36,23 @@ struct Term {
   bool hidden_holder = hidden;
   State state;
   State previous_state;
+  enum class DrawMessageCode {
+    opening_empty_folder,
+    renaming_empty_folder,
+    rename_catch_ewhat,
+    deleting_empty_folder,
+    deleting_folder,
+    created_folder,
+    no_home_env_set,
+    fix_base_dir,
+    empty_field,
+    invalid_path,
+    start_path_invalid_load_parent,
+    cant_be_opened_with_editor,
+    cant_go_past_base_dir,
+    cant_open_selection_search,
+
+  };
 };
 
 struct Placement {
