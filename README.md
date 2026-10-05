@@ -126,7 +126,6 @@ While picking a result:
 
 I am well aware of many limitations within the project currently. Small list of the bugs currently:
 
-[ ] resize handling (the event loop below fixes this)
  [ ]Rework Search
  [ ]Preview Mode
  [ ]Tree View

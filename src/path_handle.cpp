@@ -145,7 +145,6 @@ void openInEditor(const fs::path &file, Paths &paths, Placement &Pos) {
   // Back to alt screen + raw
   enableRawMode();
 
-  getWinSize(&Pos.screen_rows, &Pos.screen_cols); // They may have resized
   Global.hidden = Global.hidden_holder;
 }
 

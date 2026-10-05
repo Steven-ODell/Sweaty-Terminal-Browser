@@ -99,9 +99,6 @@ int getWinSize(int *rows, int *cols) {
   }
 }
 
-// TODO:
-// Go through here and get rid of all the prompt magic numbers and make
-// them .size()
 void refreshScreen(Paths &paths, Placement &Pos) {
 
   // Clear screen and set cursor to top corner and then write the current path
@@ -507,14 +504,15 @@ void drawRename(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   full_buf += drawRows(paths, Pos);
 
-  full_buf += moveTo(Pos.screen_rows, 1) + "Rename '" +
-              paths.entries[Pos.cur_row].path().filename().string() +
-              "' to: " + Global.new_name;
+  full_buf += moveTo(Pos.screen_rows, 1);
+
+  std::string rename_string =
+      "Rename '" + paths.entries[Pos.cur_row].path().filename().string() +
+      "' to: " + Global.new_name;
+  full_buf += rename_string;
 
   // Calculate cursor offset
-  int name_offset =
-      Global.new_name.size() + 15 +
-      paths.entries[Pos.cur_row].path().filename().string().size();
+  int name_offset = rename_string.size() + 1;
 
   // Put the cursor on the correct row at the bottom offset by the name
   full_buf += moveTo(Pos.screen_rows, name_offset);
@@ -534,11 +532,12 @@ void drawAdd(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   full_buf += drawRows(paths, Pos);
 
-  full_buf +=
-      moveTo(Pos.screen_rows, 1) + "New folder name: " + Global.brand_new_name;
+  full_buf += moveTo(Pos.screen_rows, 1);
+
+  std::string add_string = "New folder name: " + Global.brand_new_name;
 
   // Calculate cursor offset
-  int name_offset = Global.brand_new_name.size() + 18;
+  int name_offset = add_string.size() + 1;
 
   // Put the cursor on the correct row at the bottom offset by the name
   full_buf += moveTo(Pos.screen_rows, name_offset);
@@ -558,17 +557,19 @@ void drawDelete(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   full_buf += drawRows(paths, Pos);
 
-  full_buf += moveTo(Pos.screen_rows, 1) + config.delete_prompt_color +
-              "Are you sure you want to delete '" +
-              paths.entries[Pos.cur_row].path().filename().string() +
-              config.color_reset + "': [y/n]";
+  full_buf += moveTo(Pos.screen_rows, 1) + config.delete_prompt_color;
+
+  std::string delete_string =
+      "Are you sure you want to delete '" +
+      paths.entries[Pos.cur_row].path().filename().string() + "': [y/n]";
 
   // Calculate cursor offset
-  int name_offset =
-      42 + paths.entries[Pos.cur_row].path().filename().string().size();
+  int name_offset = delete_string.size() + 1;
+
+  full_buf += delete_string;
 
   // Put the cursor on the correct row and column with offset
-  full_buf += moveTo(Pos.screen_rows, name_offset);
+  full_buf += config.color_reset + moveTo(Pos.screen_rows, name_offset);
 
   if (Global.message_to_display == DrawMessageCode::fs_error) {
     std::string error_mes = "Error: " + Global.fs_error_message;

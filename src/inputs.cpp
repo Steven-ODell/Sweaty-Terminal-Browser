@@ -2,6 +2,7 @@
 #include "path_handle.h"
 #include "search.h"
 #include "term_set.h"
+#include <iostream>
 #include <unistd.h>
 
 int readKey() {
@@ -28,6 +29,16 @@ int readKey() {
 void processKeypress(Paths &paths, Placement &Pos) {
 
   int c = readKey();
+  int rows, cols;
+  if (getWinSize(&rows, &cols) &&
+      rows != (Pos.screen_rows || cols != Pos.screen_cols)) {
+    Pos.screen_rows = rows;
+    Pos.screen_cols = cols;
+    int visible = Pos.screen_rows - 2;
+    if (Pos.cur_row - Pos.window_offset >= visible)
+      Pos.window_offset = Pos.cur_row - visible + 1;
+    Global.need_refresh = true;
+  }
 
   if (c == 0) {
     if (Global.message_to_display != DrawMessageCode::none) {
@@ -112,7 +123,12 @@ void processKeypress(Paths &paths, Placement &Pos) {
 
     // Open
     case ARROW_RIGHT:
-    case 'o':
+    case 'o': {
+      std::cout << "cd " + paths.entries[Pos.cur_row].path().string()
+                << std::endl;
+      usleep(1000);
+      die("");
+    }
     case 'l':
     // Enter
     case '\r': {

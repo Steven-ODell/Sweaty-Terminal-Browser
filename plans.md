@@ -11,12 +11,12 @@
  [x]Delete folders
  [x]Add and name a new folder
  [x]Open a starting folder as an argument(basic now, bugs with it)
- [x]Multiple lines for search items breaks curor count
+ [x]Multiple lines for search items breaks cursor count
  [x]Bug when leaving nvim you lose track of your hidden state
  [x]Arrow keys come in as esc not catching the end of the sequence
- [x]Rework state so that it is one write to the buffer per input [reworked again]
+ [x]Rework state so that it is one write to the buffer per input [reworked again] [added error meesages to write now]
 [ ]Search doesn't show hidden currently. Create some kind of toggle for it but that means loading them all
-[ ] resize handling (the event loop below fixes this)
+[x] resize handling (the event loop below fixes this)
  [ ]Rework Search
  [ ]Preview Mode
  [ ]Tree View
@@ -48,13 +48,13 @@ Keep a grid of cells for whats on screen and a grid for what should be and only 
 
 ### 2. Event loop
 
-poll() on stdin and inotify and the resize signal at the same time instead of blocking on a key read. The all_paths walk goes on a background thread and gets cancelled when the query changes. Teaches threads and locking and how real programs wait on more than one thing. Resize handling comes with it and the list updates when files change on disk.
+The loop is in. One redraw per change, messages time out by counting 0.1s ticks from VTIME, resize gets checked every tick. Whats left is waiting on more than one thing. read() can only watch stdin, so once there is a second source (inotify for files changing on disk, or the search thread saying it has results) swap the wait for poll() on all of them with a 100ms timeout so the ticks keep working. The all_paths walk goes on a background thread that gets cancelled when the query changes. Teaches threads and locking and how real programs wait on more than one thing.
 
 ### 3. Proper search
 
 Matching works well enough to use for now. When I come back to it:
 
-- Additive scoring on top of the substring and subsequence tiers. Gap count, consecutive runs, match length, spaces
+- Scoring on top of the substring and subsequence tiers. Gap count, consecutive runs, match length, spaces
 - Case insensitive but penalize a case mismatch instead of rejecting it
 - The greedy scan anchors seq_start to the first match of the first char so the span it scores isnt the smallest window
 - pair<uint32_t, uint32_t> cant hold a signed score
@@ -70,7 +70,7 @@ Kitty graphics protocol, the file gets base64d and wrapped in escape codes. That
 
 ### 6. Diff tool
 
-Myers algorithm for diffing text. Build it as its own library first then hook it into the browser.
+Algorithm for diffing text. Build it as its own library first then hook it into the browser.
 
 ### 7. Git over the network
 
