@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
       std::cout << R"FN(
 cexp() {
   rm -f /tmp/cexp-cd
-  command Cexp "$@"
+  command cexp "$@"
   if [[ -f /tmp/cexp-cd ]]; then
     cd "$(cat /tmp/cexp-cd)"
     rm -f /tmp/cexp-cd

@@ -338,10 +338,10 @@ void parseConfigFile(fs::path &config_path) {
 
   std::string base_dir = "home=";
   std::string hidden = "hidden=";
-  std::string hidden_flag = "hidden_flag_color=";
-  std::string header = "header_color=";
-  std::string default_color = "default_color=";
-  std::string delete_prompt = "delete_prompt_color=";
+  std::string hidden_flag = "hidden-flag-color=";
+  std::string header = "header-color=";
+  std::string default_color = "default-color=";
+  std::string delete_prompt = "delete-prompt-color=";
 
   size_t base_dir_found = full_file.find(base_dir);
   size_t hidden_found = full_file.find(hidden);
@@ -384,10 +384,8 @@ void parseConfigFile(fs::path &config_path) {
   }
 
   if (hidden_flag_color_found != std::string::npos) {
-
     int cur_position = hidden_flag_color_found + hidden_flag.size();
     std::string color;
-
     while (full_file[cur_position] != '\n') {
       color += full_file[cur_position];
       cur_position++;
@@ -536,6 +534,7 @@ void drawAdd(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   std::string add_string = "New folder name: " + Global.brand_new_name;
 
+  full_buf += add_string;
   // Calculate cursor offset
   int name_offset = add_string.size() + 1;
 

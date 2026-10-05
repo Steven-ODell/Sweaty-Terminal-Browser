@@ -2,6 +2,7 @@
 #include "path_handle.h"
 #include "search.h"
 #include "term_set.h"
+#include <filesystem>
 #include <fstream>
 #include <unistd.h>
 
@@ -125,12 +126,21 @@ void processKeypress(Paths &paths, Placement &Pos) {
     case 'o': {
       // open the temp file that is holding cd and add the current path to it
       // and then use the init set by config
-      std::ofstream out("/tmp/cexp-cd");
-      out << paths.entries[Pos.cur_row].path().string();
-      out.close();
-      write(STDOUT_FILENO, Global.clear_and_to_corner.c_str(),
-            Global.clear_and_to_corner.size());
-      exit(0);
+      if (fs::is_directory(paths.entries[Pos.cur_row].path())) {
+        std::ofstream out("/tmp/cexp-cd");
+        out << paths.entries[Pos.cur_row].path().string();
+        out.close();
+        write(STDOUT_FILENO, Global.clear_and_to_corner.c_str(),
+              Global.clear_and_to_corner.size());
+        exit(0);
+      } else {
+        std::ofstream out("/tmp/cexp-cd");
+        out << paths.entries[Pos.cur_row].path().parent_path().string();
+        out.close();
+        write(STDOUT_FILENO, Global.clear_and_to_corner.c_str(),
+              Global.clear_and_to_corner.size());
+        exit(0);
+      }
     }
 
     // Open

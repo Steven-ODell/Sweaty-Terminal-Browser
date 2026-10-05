@@ -42,29 +42,29 @@ build is noticeably slower.
 To run it from anywhere, copy the binary onto your `PATH`:
 
 ```bash
-cp out/Release/Cexp ~/.local/bin/
+cp out/Release/cexp ~/.local/bin/
 ```
 
 Takes an optional path argument to open into a starting folder (relative to current folder or as a direct path):
 
 ```bash
-Cexp Documents/Work
+cexp Documents/Work
 ```
 
 ```bash
-Cexp /Documents/Work
+cexp /Documents/Work
 ```
 
 ```bash
-Cexp ~/Documents/Work
+cexp ~/Documents/Work
 ```
 
 ```bash
-Cexp /home/user/Documents/Work
+cexp /home/user/Documents/Work
 ```
 
 ```bash
-cd Documents && Cexp Work
+cd Documents && cexp Work
 ```
 
 ### Add the 'o' "cd out" functionality
@@ -72,11 +72,11 @@ cd Documents && Cexp Work
 What this does is allow the user to have their cursor over a folder and press 'o' to quit to your shell to that directory. All you have to do is add one line to `~/.zshrc` or your `~/.bashrc` and then restart terminal | `eval "$(cexp --init [your-shell])"` currently only bash and zsh are supported. Support for fish shell coming in the future.
 
 ```zsh
-echo 'eval "$(Cexp --init zsh)"' >> ~/.zshrc
+echo 'eval "$(cexp --init zsh)"' >> ~/.zshrc
 ```
 
 ```bash
-echo 'eval "$(Cexp --init bash)"' >> ~/.bashrc
+echo 'eval "$(cexp --init bash)"' >> ~/.bashrc
 ```
 
 ## Keybindings
