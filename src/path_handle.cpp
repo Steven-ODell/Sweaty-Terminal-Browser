@@ -1,6 +1,7 @@
 #include "path_handle.h"
 #include "term_set.h"
 #include <filesystem>
+#include <fstream>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -212,28 +213,43 @@ void deletePath(Paths &paths, Placement &Pos) {
 }
 
 void addNewPath(Paths &paths, Placement &Pos) {
+  std::string new_path = paths.full_path.string() + Global.brand_new_name;
   if (Global.brand_new_name == "") {
 
     Global.message_to_display = DrawMessageCode::entered_empty_field;
+  }
+
+  if (Global.brand_new_name[0] == '/') {
+    if (fs::exists(new_path)) {
+
+      Global.message_to_display = DrawMessageCode::trying_add_duplicate;
+    } else {
+      try {
+        fs::create_directories(new_path);
+        loadEntriesFrPath(paths, Pos);
+        Global.state = State::Browser;
+        Global.brand_new_name = "";
+
+      } catch (const fs::filesystem_error &e) {
+
+        std::string error_mes =
+            e.what() + moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
+
+        Global.message_to_display = DrawMessageCode::fs_error;
+        Global.fs_error_message = error_mes;
+      }
+    }
 
   } else {
+    new_path = paths.full_path.string() + "/" + Global.brand_new_name;
+    if (fs::exists(new_path)) {
 
-    try {
-      std::string new_path =
-          paths.full_path.string() + "/" + Global.brand_new_name;
+      Global.message_to_display = DrawMessageCode::trying_add_duplicate;
 
-      fs::create_directories(new_path);
-      loadEntriesFrPath(paths, Pos);
-      Global.state = State::Browser;
-      Global.brand_new_name = "";
+    } else {
 
-    } catch (const fs::filesystem_error &e) {
-
-      std::string error_mes =
-          e.what() + moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
-
-      Global.message_to_display = DrawMessageCode::fs_error;
-      Global.fs_error_message = error_mes;
+      std::ofstream out(new_path);
+      out.close();
     }
   }
 }

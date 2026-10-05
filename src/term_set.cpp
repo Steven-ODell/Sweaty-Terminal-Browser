@@ -480,6 +480,12 @@ void drawBrowser(std::string &full_buf, Paths &paths, Placement &Pos) {
     full_buf += error_mes;
   }
 
+  if (Global.message_to_display == DrawMessageCode::trying_add_duplicate) {
+    std::string error_mes =
+        "Error: Folder or file already exists with that name";
+    full_buf += error_mes;
+  }
+
   if (Global.message_to_display ==
       DrawMessageCode::cant_be_opened_with_editor) {
     std::string error_mes =
@@ -532,7 +538,8 @@ void drawAdd(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   full_buf += moveTo(Pos.screen_rows, 1);
 
-  std::string add_string = "New folder name: " + Global.brand_new_name;
+  std::string add_string =
+      "Create ('/'in the start for directory): " + Global.brand_new_name;
 
   full_buf += add_string;
   // Calculate cursor offset
@@ -543,6 +550,12 @@ void drawAdd(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   if (Global.message_to_display == DrawMessageCode::entered_empty_field) {
     std::string error_mes = "Error: Field was empty";
+    full_buf += error_mes;
+  }
+
+  if (Global.message_to_display == DrawMessageCode::trying_add_duplicate) {
+    std::string error_mes =
+        "Error: Folder or file already exists with that name";
     full_buf += error_mes;
   }
 

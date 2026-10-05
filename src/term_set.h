@@ -17,6 +17,7 @@ enum class DrawMessageCode {
   opening_in_empty_fodler,
   renaming_in_empty_folder,
   deleting_in_empty_folder,
+  trying_add_duplicate,
   fix_base_dir,
   entered_empty_field,
   cant_be_opened_with_editor,
