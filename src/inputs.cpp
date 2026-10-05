@@ -2,7 +2,7 @@
 #include "path_handle.h"
 #include "search.h"
 #include "term_set.h"
-#include <iostream>
+#include <fstream>
 #include <unistd.h>
 
 int readKey() {
@@ -121,14 +121,20 @@ void processKeypress(Paths &paths, Placement &Pos) {
       break;
     }
 
+      // Load the shell to that directory and quit
+    case 'o': {
+      // open the temp file that is holding cd and add the current path to it
+      // and then use the init set by config
+      std::ofstream out("/tmp/cexp-cd");
+      out << paths.entries[Pos.cur_row].path().string();
+      out.close();
+      write(STDOUT_FILENO, Global.clear_and_to_corner.c_str(),
+            Global.clear_and_to_corner.size());
+      exit(0);
+    }
+
     // Open
     case ARROW_RIGHT:
-    case 'o': {
-      std::cout << "cd " + paths.entries[Pos.cur_row].path().string()
-                << std::endl;
-      usleep(1000);
-      die("");
-    }
     case 'l':
     // Enter
     case '\r': {

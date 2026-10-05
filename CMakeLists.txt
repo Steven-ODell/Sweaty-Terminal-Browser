@@ -15,8 +15,8 @@ add_library(tfs_core
 )
 target_include_directories(tfs_core PUBLIC src)
 
-add_executable(Cexp src/main.cpp)
-target_link_libraries(Cexp PRIVATE tfs_core)
+add_executable(cexp src/main.cpp)
+target_link_libraries(cexp PRIVATE tfs_core)
 
 add_executable(tests tests/test_search.cpp)
 target_link_libraries(tests PRIVATE tfs_core)

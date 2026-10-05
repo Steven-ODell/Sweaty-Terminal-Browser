@@ -67,6 +67,18 @@ Cexp /home/user/Documents/Work
 cd Documents && Cexp Work
 ```
 
+### Add the 'o' "cd out" functionality
+
+What this does is allow the user to have their cursor over a folder and press 'o' to quit to your shell to that directory. All you have to do is add one line to `~/.zshrc` or your `~/.bashrc` and then restart terminal | `eval "$(cexp --init [your-shell])"` currently only bash and zsh are supported. Support for fish shell coming in the future.
+
+```zsh
+echo 'eval "$(Cexp --init zsh)"' >> ~/.zshrc
+```
+
+```bash
+echo 'eval "$(Cexp --init bash)"' >> ~/.bashrc
+```
+
 ## Keybindings
 
 ### Browser

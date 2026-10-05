@@ -1,6 +1,8 @@
 #include "inputs.h"
 #include "term_set.h"
 #include <csignal>
+#include <iostream>
+#include <string>
 
 int main(int argc, char *argv[]) {
 
@@ -13,14 +15,34 @@ int main(int argc, char *argv[]) {
 
   const char *home_env = std::getenv("HOME");
 
-  loadConfig(home_env);
-
-  initProgram(home_env, paths, Pos);
-
-  if (argc > 1) {
+  if (argc > 2 && std::string(argv[1]) == "--init") {
+    std::string shell = argv[2];
+    if (shell == "bash" || shell == "zsh") {
+      // Function used with shell to allow exp launch and cd on 'o'
+      std::cout << R"FN(
+cexp() {
+  rm -f /tmp/cexp-cd
+  command Cexp "$@"
+  if [[ -f /tmp/cexp-cd ]]; then
+    cd "$(cat /tmp/cexp-cd)"
+    rm -f /tmp/cexp-cd
+  fi
+}
+)FN";
+      return 0;
+    } else {
+      std::cerr << "Unsupported shell entered:" << shell << std::endl;
+      return 1;
+    }
+  }
+  if (argc == 2) {
     std::string argument = argv[1];
     handle_arg(argument, paths);
   }
+
+  loadConfig(home_env);
+
+  initProgram(home_env, paths, Pos);
 
   // Make sure start path isnt empty and correct if so
   check_start_path(paths, Pos);
