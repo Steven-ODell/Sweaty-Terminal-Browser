@@ -12,6 +12,20 @@ void die(const char *s);
 
 enum State { Browser, Rename, Search, Preview, Keys, Delete, Add };
 
+enum class DrawMessageCode {
+  opening_empty_folder_warning,
+  opening_in_empty_fodler,
+  renaming_in_empty_folder,
+  deleting_in_empty_folder,
+  fix_base_dir,
+  entered_empty_field,
+  cant_be_opened_with_editor,
+  cant_go_past_base_dir,
+  cant_open_selection_search,
+  fs_error,
+  none
+};
+
 struct Paths {
   int skipped_paths = 0;
   int rows_for_entry = 0;
@@ -36,23 +50,8 @@ struct Term {
   bool hidden_holder = hidden;
   State state;
   State previous_state;
-  enum class DrawMessageCode {
-    opening_empty_folder,
-    renaming_empty_folder,
-    rename_catch_ewhat,
-    deleting_empty_folder,
-    deleting_folder,
-    created_folder,
-    no_home_env_set,
-    fix_base_dir,
-    empty_field,
-    invalid_path,
-    start_path_invalid_load_parent,
-    cant_be_opened_with_editor,
-    cant_go_past_base_dir,
-    cant_open_selection_search,
-
-  };
+  DrawMessageCode message_to_display = DrawMessageCode::none;
+  std::string fs_error_message;
 };
 
 struct Placement {
@@ -73,9 +72,7 @@ void enableRawMode();
 std::string drawRows(Paths &paths, Placement &Pos);
 
 int getWinSize(int *rows, int *cols);
-
 void refreshScreen(Paths &paths, Placement &Pos);
-
 void initExplorer(Paths &paths, Placement &Pos);
 
 void setPathsForBaseSearch(Paths &paths);

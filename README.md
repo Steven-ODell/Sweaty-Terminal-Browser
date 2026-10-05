@@ -132,7 +132,7 @@ I am well aware of many limitations within the project currently. Small list of 
  [ ]Tree View
 [ ] Add keybindings and other options to the config. (Currently | base_dir and hidden on launch)
  [ ]Work on color implementations
-[ ] Truncation at term_set drawRows() and search drawSearchRows() cuts to screen_cols - 2 then adds 3 dots so it works now because the first column is two bits but need to count columns not bits. Works but fragile (Redo)
+[ ] Truncation at term_set drawRows() and search drawSearchRows() cuts to screen_cols - 2 then adds 3 dots so it works now because the first column is two bits but need to count columns not bits. Works but fragile and wont work properly with colors (Redo)
 [ ] No handling for $EDITOR or $VISUAL always set to nvim. Want to add ability to collapse from $VISUAL down to vi. $VISUAL -> $EDITOR -> nvim -> vim -> nano -> vi -> error message. Only if nothing set in .config
 [ ] Clean up code in general 
 

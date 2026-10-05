@@ -170,7 +170,8 @@ void refreshScreen(Paths &paths, Placement &Pos) {
   }
   }
 
-  if (Global.hidden && !(Global.state == State::Search)) {
+  if (Global.hidden && !(Global.state == State::Search) &&
+      Global.message_to_display == DrawMessageCode::none) {
 
     full_buf += moveTo(Pos.screen_rows, 1);
 
@@ -196,9 +197,7 @@ void initExplorer(Paths &paths, Placement &Pos) {
 }
 
 void setPathsForBaseSearch(Paths &paths) {
-
   fs::recursive_directory_iterator cur_dir(paths.base_dir);
-
   fs::recursive_directory_iterator done;
 
   while (cur_dir != done) {
@@ -372,6 +371,7 @@ void parseConfigFile(fs::path &config_path) {
     } else {
       std::string err_message = "Invalid path set in config file";
       write(STDOUT_FILENO, err_message.c_str(), err_message.size());
+      sleep(2);
       die("Config");
     }
   }
@@ -452,7 +452,51 @@ void drawBrowser(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   full_buf += drawRows(paths, Pos);
 
-  // Put the cursor on the correct row with Global.cx
+  // Put the cursor on the correct row with Pos.cur_row
+
+  if (Global.message_to_display == DrawMessageCode::opening_in_empty_fodler) {
+    std::string error_mes =
+        "Nothing to open " + moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
+    full_buf += error_mes;
+  }
+
+  if (Global.message_to_display ==
+      DrawMessageCode::opening_empty_folder_warning) {
+    std::string error_mes = "[Folder is empty or only contains hidden]" +
+                            moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
+    full_buf += error_mes;
+  }
+
+  if (Global.message_to_display == DrawMessageCode::renaming_in_empty_folder) {
+    std::string error_mes =
+        "Nothing to rename " + moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
+    full_buf += error_mes;
+  }
+
+  if (Global.message_to_display == DrawMessageCode::deleting_in_empty_folder) {
+    std::string error_mes =
+        "Nothing to delete " + moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
+    full_buf += error_mes;
+  }
+
+  if (Global.message_to_display == DrawMessageCode::cant_go_past_base_dir) {
+    std::string error_mes = moveTo(Pos.cur_row - Pos.window_offset + 2, 1) +
+                            "[Cant go further back than the home directory]";
+    full_buf += error_mes;
+  }
+
+  if (Global.message_to_display ==
+      DrawMessageCode::cant_be_opened_with_editor) {
+    std::string error_mes =
+        moveTo(Pos.cur_row - Pos.window_offset + 2, 1) +
+        "[Error this file type can not be opened with an editor]";
+    full_buf += error_mes;
+  }
+
+  if (Global.message_to_display == DrawMessageCode::fs_error) {
+    std::string error_mes = "Error: " + Global.fs_error_message;
+    full_buf += error_mes;
+  }
 
   full_buf += moveTo(Pos.screen_rows, 1);
   full_buf += "'?' for Keys \x1b[" +
@@ -474,6 +518,16 @@ void drawRename(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   // Put the cursor on the correct row at the bottom offset by the name
   full_buf += moveTo(Pos.screen_rows, name_offset);
+
+  if (Global.message_to_display == DrawMessageCode::entered_empty_field) {
+    std::string error_mes = "Error: Field was empty";
+    full_buf += error_mes;
+  }
+
+  if (Global.message_to_display == DrawMessageCode::fs_error) {
+    std::string error_mes = "Error: " + Global.fs_error_message;
+    full_buf += error_mes;
+  }
 }
 
 void drawAdd(std::string &full_buf, Paths &paths, Placement &Pos) {
@@ -488,6 +542,16 @@ void drawAdd(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   // Put the cursor on the correct row at the bottom offset by the name
   full_buf += moveTo(Pos.screen_rows, name_offset);
+
+  if (Global.message_to_display == DrawMessageCode::entered_empty_field) {
+    std::string error_mes = "Error: Field was empty";
+    full_buf += error_mes;
+  }
+
+  if (Global.message_to_display == DrawMessageCode::fs_error) {
+    std::string error_mes = "Error: " + Global.fs_error_message;
+    full_buf += error_mes;
+  }
 }
 
 void drawDelete(std::string &full_buf, Paths &paths, Placement &Pos) {
@@ -505,6 +569,11 @@ void drawDelete(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   // Put the cursor on the correct row and column with offset
   full_buf += moveTo(Pos.screen_rows, name_offset);
+
+  if (Global.message_to_display == DrawMessageCode::fs_error) {
+    std::string error_mes = "Error: " + Global.fs_error_message;
+    full_buf += error_mes;
+  }
 }
 
 void drawSearch(std::string &full_buf, Paths &paths, Placement &Pos) {
@@ -530,6 +599,19 @@ void drawSearch(std::string &full_buf, Paths &paths, Placement &Pos) {
 
     // Put the cursor on the correct row and first comuln
     full_buf += moveTo(Pos.cur_row - Pos.window_offset + 1, 1);
+  }
+
+  if (Global.message_to_display == DrawMessageCode::entered_empty_field) {
+    std::string error_mes = "Error: Field was empty";
+    full_buf += error_mes;
+  }
+
+  if (Global.message_to_display ==
+      DrawMessageCode::cant_open_selection_search) {
+    std::string error_mes =
+        moveTo(Pos.cur_row - Pos.window_offset + 2, 1) +
+        "[Error this file type can not be opened: Loaded parent path]";
+    full_buf += error_mes;
   }
 }
 

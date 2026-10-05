@@ -13,7 +13,6 @@ int readKey() {
     if (nread == -1 && errno != EAGAIN)
       die("read");
   }
-
   // Catch "esc"
   if (c == '\x1b') {
     return handleEsc();
@@ -24,6 +23,9 @@ int readKey() {
 void processKeypress(Paths &paths, Placement &Pos) {
 
   int c = readKey();
+
+  Global.message_to_display = DrawMessageCode::none;
+  Global.fs_error_message = "";
 
   switch (Global.state) {
 
@@ -53,13 +55,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     // Delete
     case 'd': {
       if (paths.entries.empty()) {
-
-        std::string error_mes = "Nothing to delete " +
-                                moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
-        write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
-
-        sleep(1);
-
+        Global.message_to_display = DrawMessageCode::deleting_in_empty_folder;
         break;
       }
       Global.hidden_holder = Global.hidden;
@@ -79,13 +75,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     // Set State to Rename
     case 'r': {
       if (paths.entries.empty()) {
-
-        std::string error_mes = "Nothing to rename " +
-                                moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
-        write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
-
-        sleep(1);
-
+        Global.message_to_display = DrawMessageCode::renaming_in_empty_folder;
         break;
       }
       Global.hidden_holder = Global.hidden;
@@ -108,12 +98,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     // Enter
     case '\r': {
       if (paths.entries.empty()) {
-        std::string error_mes =
-            "Nothing to open " + moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
-        write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
-
-        sleep(1);
-
+        Global.message_to_display = DrawMessageCode::opening_in_empty_fodler;
         break;
       }
       openCurrentPath(paths.entries[Pos.cur_row], paths, Pos);
@@ -165,12 +150,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
         Pos.window_offset = 0;
         Pos.cur_row = 0;
         if (paths.search_in == "") {
-          std::string error_mes = "» Error: Field was empty ";
-          error_mes += moveTo(Pos.screen_rows, 13);
-          write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
-
-          sleep(1);
-
+          Global.message_to_display = DrawMessageCode::entered_empty_field;
           break;
         }
         Global.search_selector = true;
@@ -394,11 +374,17 @@ void processKeypress(Paths &paths, Placement &Pos) {
     switch (c) {
     // Enter
     case '\r': {
-      renamePath(paths, Pos);
-      Global.hidden = Global.hidden_holder;
-      loadEntriesFrPath(paths, Pos);
-      Global.state = State::Browser;
-      Global.new_name = "";
+      if (Global.new_name == "") {
+        Global.message_to_display = DrawMessageCode::entered_empty_field;
+        Global.state = State::Rename;
+        Global.new_name = "";
+      } else {
+        renamePath(paths, Pos);
+        Global.hidden = Global.hidden_holder;
+        loadEntriesFrPath(paths, Pos);
+        Global.state = State::Browser;
+        Global.new_name = "";
+      }
       break;
     }
 

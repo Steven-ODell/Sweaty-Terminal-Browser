@@ -33,14 +33,9 @@ void loadEntriesFrPath(Paths &paths, Placement &Pos) {
     }
 
     if (paths.entries.empty()) {
-
       if (paths.full_path != paths.base_dir) {
-
-        std::string error_mes = "» Folder is empty or only contains hidden";
-        error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
-        write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
-
-        sleep(1);
+        Global.message_to_display =
+            DrawMessageCode::opening_empty_folder_warning;
       }
     }
   } else if (!fs::is_directory(paths.full_path)) {
@@ -60,11 +55,7 @@ void loadPreviousPath(Paths &paths, Placement &Pos) {
 
     } else {
 
-      std::string error_mes = "» Cant go further back than the home directory ";
-      error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
-      write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
-
-      sleep(1);
+      Global.message_to_display = DrawMessageCode::cant_go_past_base_dir;
     }
   }
 }
@@ -112,12 +103,7 @@ void checkIfFile(const fs::path &path_to_check, Paths &paths, Placement &Pos) {
                EXT == ".blend" || EXT == ".stl" || EXT == ".3mf" ||
                EXT == ".fbx" || EXT == ".glb" || EXT == ".dwg") {
 
-      std::string error_mes =
-          "» Error this file type can not be opened with an editor ";
-      error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
-      write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
-
-      sleep(1);
+      Global.message_to_display = DrawMessageCode::cant_be_opened_with_editor;
 
       paths.full_path = path_to_check.parent_path();
       loadEntriesFrPath(paths, Pos);
@@ -133,12 +119,7 @@ void checkIfFile(const fs::path &path_to_check, Paths &paths, Placement &Pos) {
     }
   } else {
 
-    std::string error_mes =
-        "» Error this file type can not be opened with an editor ";
-    error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
-    write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
-
-    sleep(1);
+    Global.message_to_display = DrawMessageCode::cant_be_opened_with_editor;
   }
 }
 
@@ -192,40 +173,25 @@ void openCurrentPath(const fs::path &cur_path, Paths &paths, Placement &Pos) {
 
   paths.full_path = cur_path;
   loadEntriesFrPath(paths, Pos);
-
-  write(STDOUT_FILENO, "\x1b[H", 3);
 }
 
 void renamePath(Paths &paths, Placement &Pos) {
+  try {
 
-  if (Global.new_name == "") {
+    fs::rename(paths.entries[Pos.cur_row].path(),
+               paths.entries[Pos.cur_row].path().parent_path() /
+                   Global.new_name);
+    loadEntriesFrPath(paths, Pos);
+    Global.state = State::Browser;
+    Global.new_name = "";
 
-    std::string error_mes = "Error: Field was empty ";
-    error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
-    write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
+  } catch (const fs::filesystem_error &e) {
 
-    sleep(1);
+    std::string error_mes =
+        e.what() + moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
 
-  } else {
-
-    try {
-
-      fs::rename(paths.entries[Pos.cur_row].path(),
-                 paths.entries[Pos.cur_row].path().parent_path() /
-                     Global.new_name);
-      loadEntriesFrPath(paths, Pos);
-      Global.state = State::Browser;
-      Global.new_name = "";
-
-    } catch (const fs::filesystem_error &e) {
-
-      std::string err_what = e.what();
-      std::string error_mes = "» Error: " + err_what;
-      error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
-      write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
-
-      sleep(2);
-    }
+    Global.message_to_display = DrawMessageCode::fs_error;
+    Global.fs_error_message = error_mes;
   }
 }
 
@@ -234,31 +200,13 @@ void deletePath(Paths &paths, Placement &Pos) {
 
     uintmax_t total_removed = fs::remove_all(paths.entries[Pos.cur_row]);
 
-    if (total_removed == 1) {
-
-      std::string del_mes = " Folder deleted ";
-      del_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
-      write(STDOUT_FILENO, del_mes.c_str(), del_mes.size());
-
-      sleep(1);
-
-    } else {
-
-      std::string del_mes = " Folder/files deleted ";
-      del_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
-      write(STDOUT_FILENO, del_mes.c_str(), del_mes.size());
-
-      sleep(1);
-    }
-
   } catch (const fs::filesystem_error &e) {
 
-    std::string err_what = e.what();
-    std::string error_mes = " Error: " + err_what;
-    error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
-    write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
+    std::string error_mes =
+        e.what() + moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
 
-    sleep(2);
+    Global.message_to_display = DrawMessageCode::fs_error;
+    Global.fs_error_message = error_mes;
   }
 
   Global.state = State::Browser;
@@ -269,16 +217,11 @@ void deletePath(Paths &paths, Placement &Pos) {
 void addNewPath(Paths &paths, Placement &Pos) {
   if (Global.brand_new_name == "") {
 
-    std::string error_mes = "Error: Field was empty ";
-    error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
-    write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
-
-    sleep(1);
+    Global.message_to_display = DrawMessageCode::entered_empty_field;
 
   } else {
 
     try {
-
       std::string new_path =
           paths.full_path.string() + "/" + Global.brand_new_name;
 
@@ -289,13 +232,11 @@ void addNewPath(Paths &paths, Placement &Pos) {
 
     } catch (const fs::filesystem_error &e) {
 
-      std::string err_what = e.what();
+      std::string error_mes =
+          e.what() + moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
 
-      std::string error_mes = "Error: " + err_what;
-      error_mes += moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
-      write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
-
-      sleep(2);
+      Global.message_to_display = DrawMessageCode::fs_error;
+      Global.fs_error_message = error_mes;
     }
   }
 }

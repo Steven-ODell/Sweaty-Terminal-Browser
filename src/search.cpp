@@ -92,12 +92,7 @@ void selectSearchPath(Paths &paths, Placement &Pos) {
 
   } else {
 
-    std::string error_mes = "» This folder/file cant be opened \x1b[";
-    error_mes += std::to_string(Pos.screen_rows) + ";1H";
-
-    write(STDOUT_FILENO, error_mes.c_str(), error_mes.size());
-
-    sleep(1);
+    Global.message_to_display = DrawMessageCode::cant_open_selection_search;
   }
 }
 
