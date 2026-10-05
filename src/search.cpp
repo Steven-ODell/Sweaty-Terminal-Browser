@@ -9,9 +9,7 @@ namespace fs = std::filesystem;
 
 std::vector<std::pair<uint32_t, uint32_t>>
 searchCurBuffer(Paths &paths, const std::string &cur_buffer) {
-
   std::vector<std::pair<uint32_t, uint32_t>> hits;
-
   // Go through each path inside the entire directory
   for (size_t cur_path = 0; cur_path < (paths.all_paths.size()); cur_path++) {
 

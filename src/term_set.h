@@ -41,10 +41,12 @@ struct Paths {
 
 struct Term {
   struct termios orig_termios;
+  int message_ticks = 0;
   std::string del_choice = "";
   std::string brand_new_name = "";
   std::string new_name = "";
   std::string clear_and_to_corner = "\x1b[2J\x1b[H";
+  bool need_refresh = true;
   bool search_selector = false;
   bool hidden = true;
   bool hidden_holder = hidden;

@@ -33,7 +33,10 @@ int main(int argc, char *argv[]) {
 
   // Wait for user input
   while (1) {
-    refreshScreen(paths, Pos);
+    if (Global.need_refresh) {
+      refreshScreen(paths, Pos);
+      Global.need_refresh = false;
+    }
     processKeypress(paths, Pos);
   }
 

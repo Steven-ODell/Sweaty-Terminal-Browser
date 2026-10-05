@@ -2,17 +2,22 @@
 #include "path_handle.h"
 #include "search.h"
 #include "term_set.h"
+#include <unistd.h>
 
 int readKey() {
 
-  int nread;
-
   char c;
 
-  while ((nread = read(STDIN_FILENO, &c, 1)) != 1) {
-    if (nread == -1 && errno != EAGAIN)
-      die("read");
+  int nread = read(STDERR_FILENO, &c, 1);
+
+  if (nread == -1 && errno != EAGAIN) {
+    die("read");
   }
+
+  if (nread == 0) {
+    return 0;
+  }
+
   // Catch "esc"
   if (c == '\x1b') {
     return handleEsc();
@@ -24,7 +29,21 @@ void processKeypress(Paths &paths, Placement &Pos) {
 
   int c = readKey();
 
+  if (c == 0) {
+    if (Global.message_to_display != DrawMessageCode::none) {
+      Global.message_ticks++;
+      if (Global.message_ticks >= 12) {
+        Global.message_to_display = DrawMessageCode::none;
+        Global.need_refresh = true;
+        Global.message_ticks = 0;
+      }
+    }
+    return;
+  }
+
   Global.message_to_display = DrawMessageCode::none;
+  Global.message_ticks = 0;
+  Global.need_refresh = true;
   Global.fs_error_message = "";
 
   switch (Global.state) {

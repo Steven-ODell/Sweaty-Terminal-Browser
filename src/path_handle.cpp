@@ -77,7 +77,6 @@ void checkIfFile(const fs::path &path_to_check, Paths &paths, Placement &Pos) {
       openInViewer(path_to_check);
       Global.hidden = Global.hidden_holder;
       loadEntriesFrPath(paths, Pos);
-      refreshScreen(paths, Pos);
 
     } else if (EXT == ".o" || EXT == ".a" || EXT == ".so" || EXT == ".ko" ||
                EXT == ".elf" || EXT == ".bin" || EXT == ".exe" ||
@@ -148,7 +147,6 @@ void openInEditor(const fs::path &file, Paths &paths, Placement &Pos) {
 
   getWinSize(&Pos.screen_rows, &Pos.screen_cols); // They may have resized
   Global.hidden = Global.hidden_holder;
-  refreshScreen(paths, Pos);
 }
 
 void openInViewer(const fs::path &file) {
