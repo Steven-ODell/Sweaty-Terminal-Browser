@@ -63,14 +63,15 @@ std::string drawRows(Paths &paths, Placement &Pos) {
 
     std::string buf = "» " + paths.entries[index].path().filename().string();
 
-    if (buf.size() > Pos.screen_cols - 2) {
-
-      buf = buf.substr(0, Pos.screen_cols - 2) + "...";
+    if ((buf.size() > Pos.screen_cols - 3)) {
+      buf = buf.substr(0, Pos.screen_cols - 3) + "...";
     }
+
+    buf.insert(0, config.list_color);
+    buf.append(config.color_reset);
 
     // If not at the last line keep writing a new line for the next row
     if (i < paths.rows_for_entry - 1) {
-
       buf += "\r\n";
     }
 
@@ -123,42 +124,36 @@ void refreshScreen(Paths &paths, Placement &Pos) {
   case State::Browser: {
 
     drawBrowser(full_buf, paths, Pos);
-
     break;
   }
 
   case State::Rename: {
 
     drawRename(full_buf, paths, Pos);
-
     break;
   }
 
   case State::Add: {
 
     drawAdd(full_buf, paths, Pos);
-
     break;
   }
 
   case State::Delete: {
 
     drawDelete(full_buf, paths, Pos);
-
     break;
   }
 
   case State::Keys: {
 
     drawKeys(full_buf, paths, Pos);
-
     break;
   }
 
   case State::Search: {
 
     drawSearch(full_buf, paths, Pos);
-
     break;
   }
 
@@ -312,7 +307,7 @@ void initProgram(const char *home_env, Paths &paths, Placement &Pos) {
 void loadConfig(const char *home_env) {
   if (home_env != nullptr) {
     // Check if the config file exists in the correct path
-    std::string config_tail = "/.config/Cexp/config.toml";
+    std::string config_tail = "/.config/cexp/config.toml";
     fs::path config_path = home_env + config_tail;
     if (fs::exists(config_path)) {
       parseConfigFile(config_path);
@@ -342,14 +337,15 @@ void parseConfigFile(fs::path &config_path) {
   std::string header = "header-color=";
   std::string default_color = "default-color=";
   std::string delete_prompt = "delete-prompt-color=";
+  std::string list_prompt = "list-color=";
 
   size_t base_dir_found = full_file.find(base_dir);
   size_t hidden_found = full_file.find(hidden);
-
   size_t hidden_flag_color_found = full_file.find(hidden_flag);
   size_t header_color_found = full_file.find(header);
   size_t default_color_found = full_file.find(default_color);
   size_t delete_prompt_color_found = full_file.find(delete_prompt);
+  size_t list_color_found = full_file.find(list_prompt);
 
   // if you find a keyword check the value
 
@@ -432,6 +428,19 @@ void parseConfigFile(fs::path &config_path) {
 
     config.delete_prompt_color = "\x1b[" + color + "m";
   }
+
+  if (list_color_found != std::string::npos) {
+
+    int cur_position = list_color_found + list_prompt.size();
+    std::string color;
+
+    while (full_file[cur_position] != '\n') {
+      color += full_file[cur_position];
+      cur_position++;
+    }
+
+    config.list_color = "\x1b[" + color + "m";
+  }
 }
 
 std::string moveTo(const int row, const int col) {
@@ -482,6 +491,7 @@ void drawBrowser(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   if (Global.message_to_display == DrawMessageCode::trying_add_duplicate) {
     std::string error_mes =
+        moveTo(Pos.cur_row - Pos.window_offset + 2, 1) +
         "Error: Folder or file already exists with that name";
     full_buf += error_mes;
   }
@@ -555,6 +565,7 @@ void drawAdd(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   if (Global.message_to_display == DrawMessageCode::trying_add_duplicate) {
     std::string error_mes =
+        moveTo(Pos.cur_row - Pos.window_offset + 2, 1) +
         "Error: Folder or file already exists with that name";
     full_buf += error_mes;
   }

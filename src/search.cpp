@@ -1,4 +1,5 @@
 #include "search.h"
+#include "config.h"
 #include "path_handle.h"
 #include "term_set.h"
 #include <algorithm>
@@ -113,9 +114,12 @@ std::string drawSearchRows(Paths &paths, Placement &Pos) {
 
     buf += "» " + paths.all_paths[paths.hits[index].second].path().string();
 
-    if (buf.size() > Pos.screen_cols - 2) {
-      buf = buf.substr(0, Pos.screen_cols - 2) + "...";
+    if (buf.size() > Pos.screen_cols - 3) {
+      buf = buf.substr(0, Pos.screen_cols - 3) + "...";
     }
+
+    buf.insert(0, config.list_color);
+    buf.append(config.color_reset);
 
     if (i < Pos.screen_rows - 2) {
       buf += "\r\n";

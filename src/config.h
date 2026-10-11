@@ -63,4 +63,8 @@ struct Config {
 
   // Delete prompt color
   std::string delete_prompt_color = "\x1b[31m";
+
+  std::string list_color = "\x1b[33m";
 };
+
+extern Config config;

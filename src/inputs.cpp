@@ -31,8 +31,9 @@ void processKeypress(Paths &paths, Placement &Pos) {
 
   int c = readKey();
   int rows, cols;
-  if (getWinSize(&rows, &cols) &&
-      rows != (Pos.screen_rows || cols != Pos.screen_cols)) {
+
+  if (getWinSize(&rows, &cols) == 0 &&
+      (rows != Pos.screen_rows || (cols != Pos.screen_cols))) {
     Pos.screen_rows = rows;
     Pos.screen_cols = cols;
     int visible = Pos.screen_rows - 2;

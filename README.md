@@ -22,6 +22,8 @@ This project was meant to be a real usable project that I could be proud to pres
 - The "Search" function is built off of my own `"Fuzzy Search"` that I attempted to write myself. It works based of finding a substring and subsequence and ranks them separately depending on which it is. This allows for the partial missing of letters but still able to find the desired file. Look at Search Mode - 4 I still plan on writing more proper search with gap and match measurements and hope that can be more polished than the search I have now.
 - The "Search" currently does an initial load of the entire `$HOME` directory and recursively walks all folders. This creates an array that holds all the paths to every single file. The thinking behind this was entirely to "optimize" the speed at which the search happens. In the future I will make this a background process that happens upon opening the tool and then the user will either be hit with a loading entries message or able to jump into search depending on the size.
 - Started as raw terminal writing and then moved to a more state based system that runs off key inputs that set a state and then refresh the screen based on the state. This is going to be refined in the future and will likely be some kind of streaming for parts. In the distant future I hope to make my own diff terminal rendering system to only render what has changed. But for now this is just a state is set by keys and then refresh screen and wait for keys. With a couple flags like `search-selector` and `hidden`
+- Keeping things in a "Global" struct that is accessible everywhere feels amateur but I don't know how to get past that yet. This is my first "real" project in C++ so I feel the structure is as good as I can make it. 
+- Everything is drawn written to the screen in one write. Including the warnings. The warnings have a tick check when they are up and the entire system relies on a "wait to refresh" system so that even when the ticks are happening for the warnings it isnt refreshing the screen on every write. But it still reacts to your input to disappear which I was having trouble with in the beginning using sleep().
 
 
 ## Build
@@ -143,7 +145,6 @@ I am well aware of many limitations within the project currently. Small list of 
  [ ]Tree View
 [ ] Add keybindings and other options to the config. (Currently | base_dir and hidden on launch)
  [ ]Work on color implementations
-[ ] Truncation at term_set drawRows() and search drawSearchRows() cuts to screen_cols - 2 then adds 3 dots so it works now because the first column is two bits but need to count columns not bits. Works but fragile and wont work properly with colors (Redo)
 [ ] No handling for $EDITOR or $VISUAL always set to nvim. Want to add ability to collapse from $VISUAL down to vi. $VISUAL -> $EDITOR -> nvim -> vim -> nano -> vi -> error message. Only if nothing set in .config
 [ ] Clean up code in general 
 
