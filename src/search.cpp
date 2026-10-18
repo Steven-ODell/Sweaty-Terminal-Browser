@@ -73,25 +73,25 @@ void selectSearchPath(Paths &paths, Placement &Pos) {
 
   if (fs::is_directory(selected_path)) {
 
-    Global.state = State::Browser;
+    term.state = State::Browser;
     paths.search_in = "";
-    Global.search_selector = false;
-    Global.hidden = Global.hidden_holder;
+    term.search_selector = false;
+    term.hidden = term.hidden_holder;
 
     openCurrentPath(selected_path, paths, Pos);
 
   } else if (fs::is_regular_file(selected_path)) {
 
-    Global.state = State::Browser;
+    term.state = State::Browser;
     paths.search_in = "";
-    Global.search_selector = false;
-    Global.hidden = Global.hidden_holder;
+    term.search_selector = false;
+    term.hidden = term.hidden_holder;
 
     checkIfFile(selected_path, paths, Pos);
 
   } else {
 
-    Global.message_to_display = DrawMessageCode::cant_open_selection_search;
+    term.message_to_display = DrawMessageCode::cant_open_selection_search;
   }
 }
 

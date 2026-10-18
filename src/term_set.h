@@ -29,7 +29,6 @@ enum class DrawMessageCode {
 
 struct Paths {
   int skipped_paths = 0;
-  int rows_for_entry = 0;
   int hidden_count = 0;
   std::vector<std::filesystem::directory_entry> all_paths;
   std::string base_dir = "";
@@ -38,6 +37,8 @@ struct Paths {
   std::filesystem::path full_path;
   std::vector<std::pair<uint32_t, uint32_t>> hits;
   std::vector<std::filesystem::directory_entry> entries;
+
+  int entryCount() const { return entries.size(); }
 };
 
 struct Term {
@@ -60,11 +61,48 @@ struct Term {
 struct Placement {
   int cur_row = 0;
   int window_offset = 0;
+  int rows_for_entry = 0;
   int screen_rows;
   int screen_cols;
+
+  int getScreenRows() { return screen_rows; }
+  int getScreenCols() { return screen_cols; }
+
+  void moveCursorUp() {
+
+    if (cur_row - window_offset + 2 > 2) {
+
+      cur_row--;
+
+    } else if (window_offset > 0) {
+
+      window_offset--;
+      cur_row--;
+    }
+  }
+
+  void moveCursorDown(Paths &paths) {
+
+    if (cur_row + 1 < paths.entryCount()) {
+
+      if (cur_row - window_offset + 2 < screen_rows - (screen_rows / 2)) {
+
+        cur_row++;
+
+      } else if (window_offset + rows_for_entry < paths.entries.size() + 2) {
+
+        window_offset++;
+        cur_row++;
+
+      } else if (cur_row + 1 <= paths.entries.size()) {
+
+        cur_row++;
+      }
+    }
+  }
 };
 
-extern Term Global;
+extern Term term;
 
 void initProgram(const char *home_env, Paths &paths, Placement &Pos);
 

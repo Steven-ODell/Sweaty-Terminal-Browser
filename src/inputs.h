@@ -14,6 +14,3 @@ void processKeypress(Paths &paths, Placement &Pos);
 int readKey();
 
 int handleEsc();
-
-void moveCursorDown(Paths &paths, Placement &Pos);
-void moveCursorUp(Placement &Pos);

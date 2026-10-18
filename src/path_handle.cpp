@@ -10,7 +10,7 @@ void loadEntriesFrPath(Paths &paths, Placement &Pos) {
   if (fs::is_directory(paths.full_path)) {
 
     paths.entries.clear();
-    Global.new_name = "";
+    term.new_name = "";
     Pos.cur_row = 0;
     Pos.window_offset = 0;
 
@@ -21,7 +21,7 @@ void loadEntriesFrPath(Paths &paths, Placement &Pos) {
 
     paths.full_path.assign(paths.full_path);
 
-    if (Global.hidden) {
+    if (term.hidden) {
 
       paths.hidden_count = 0;
 
@@ -35,8 +35,7 @@ void loadEntriesFrPath(Paths &paths, Placement &Pos) {
 
     if (paths.entries.empty()) {
       if (paths.full_path != paths.base_dir) {
-        Global.message_to_display =
-            DrawMessageCode::opening_empty_folder_warning;
+        term.message_to_display = DrawMessageCode::opening_empty_folder_warning;
       }
     }
   } else if (!fs::is_directory(paths.full_path)) {
@@ -56,7 +55,7 @@ void loadPreviousPath(Paths &paths, Placement &Pos) {
 
     } else {
 
-      Global.message_to_display = DrawMessageCode::cant_go_past_base_dir;
+      term.message_to_display = DrawMessageCode::cant_go_past_base_dir;
     }
   }
 }
@@ -72,11 +71,11 @@ void checkIfFile(const fs::path &path_to_check, Paths &paths, Placement &Pos) {
         EXT == ".webp" || EXT == ".bmp") {
 
       // Open with image viewer
-      Global.hidden_holder = Global.hidden;
+      term.hidden_holder = term.hidden;
       paths.full_path = path_to_check.parent_path();
 
       openInViewer(path_to_check);
-      Global.hidden = Global.hidden_holder;
+      term.hidden = term.hidden_holder;
       loadEntriesFrPath(paths, Pos);
 
     } else if (EXT == ".o" || EXT == ".a" || EXT == ".so" || EXT == ".ko" ||
@@ -103,7 +102,7 @@ void checkIfFile(const fs::path &path_to_check, Paths &paths, Placement &Pos) {
                EXT == ".blend" || EXT == ".stl" || EXT == ".3mf" ||
                EXT == ".fbx" || EXT == ".glb" || EXT == ".dwg") {
 
-      Global.message_to_display = DrawMessageCode::cant_be_opened_with_editor;
+      term.message_to_display = DrawMessageCode::cant_be_opened_with_editor;
 
       paths.full_path = path_to_check.parent_path();
       loadEntriesFrPath(paths, Pos);
@@ -111,7 +110,7 @@ void checkIfFile(const fs::path &path_to_check, Paths &paths, Placement &Pos) {
     } else {
 
       // Open Nvim to file path
-      Global.hidden_holder = Global.hidden;
+      term.hidden_holder = term.hidden;
       paths.full_path = path_to_check;
       openInEditor(path_to_check, paths, Pos);
       paths.full_path = path_to_check.parent_path();
@@ -119,7 +118,7 @@ void checkIfFile(const fs::path &path_to_check, Paths &paths, Placement &Pos) {
     }
   } else {
 
-    Global.message_to_display = DrawMessageCode::cant_be_opened_with_editor;
+    term.message_to_display = DrawMessageCode::cant_be_opened_with_editor;
   }
 }
 
@@ -146,7 +145,7 @@ void openInEditor(const fs::path &file, Paths &paths, Placement &Pos) {
   // Back to alt screen + raw
   enableRawMode();
 
-  Global.hidden = Global.hidden_holder;
+  term.hidden = term.hidden_holder;
 }
 
 void openInViewer(const fs::path &file) {
@@ -177,19 +176,18 @@ void renamePath(Paths &paths, Placement &Pos) {
   try {
 
     fs::rename(paths.entries[Pos.cur_row].path(),
-               paths.entries[Pos.cur_row].path().parent_path() /
-                   Global.new_name);
+               paths.entries[Pos.cur_row].path().parent_path() / term.new_name);
     loadEntriesFrPath(paths, Pos);
-    Global.state = State::Browser;
-    Global.new_name = "";
+    term.state = State::Browser;
+    term.new_name = "";
 
   } catch (const fs::filesystem_error &e) {
 
     std::string error_mes =
         e.what() + moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
 
-    Global.message_to_display = DrawMessageCode::fs_error;
-    Global.fs_error_message = error_mes;
+    term.message_to_display = DrawMessageCode::fs_error;
+    term.fs_error_message = error_mes;
   }
 }
 
@@ -203,48 +201,48 @@ void deletePath(Paths &paths, Placement &Pos) {
     std::string error_mes =
         e.what() + moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
 
-    Global.message_to_display = DrawMessageCode::fs_error;
-    Global.fs_error_message = error_mes;
+    term.message_to_display = DrawMessageCode::fs_error;
+    term.fs_error_message = error_mes;
   }
 
-  Global.state = State::Browser;
+  term.state = State::Browser;
   loadEntriesFrPath(paths, Pos);
-  Global.del_choice = "";
+  term.del_choice = "";
 }
 
 void addNewPath(Paths &paths, Placement &Pos) {
-  std::string new_path = paths.full_path.string() + Global.brand_new_name;
-  if (Global.brand_new_name == "") {
+  std::string new_path = paths.full_path.string() + term.brand_new_name;
+  if (term.brand_new_name == "") {
 
-    Global.message_to_display = DrawMessageCode::entered_empty_field;
+    term.message_to_display = DrawMessageCode::entered_empty_field;
   }
 
-  if (Global.brand_new_name[0] == '/') {
+  if (term.brand_new_name[0] == '/') {
     if (fs::exists(new_path)) {
 
-      Global.message_to_display = DrawMessageCode::trying_add_duplicate;
+      term.message_to_display = DrawMessageCode::trying_add_duplicate;
     } else {
       try {
         fs::create_directories(new_path);
         loadEntriesFrPath(paths, Pos);
-        Global.state = State::Browser;
-        Global.brand_new_name = "";
+        term.state = State::Browser;
+        term.brand_new_name = "";
 
       } catch (const fs::filesystem_error &e) {
 
         std::string error_mes =
             e.what() + moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
 
-        Global.message_to_display = DrawMessageCode::fs_error;
-        Global.fs_error_message = error_mes;
+        term.message_to_display = DrawMessageCode::fs_error;
+        term.fs_error_message = error_mes;
       }
     }
 
   } else {
-    new_path = paths.full_path.string() + "/" + Global.brand_new_name;
+    new_path = paths.full_path.string() + "/" + term.brand_new_name;
     if (fs::exists(new_path)) {
 
-      Global.message_to_display = DrawMessageCode::trying_add_duplicate;
+      term.message_to_display = DrawMessageCode::trying_add_duplicate;
 
     } else {
 

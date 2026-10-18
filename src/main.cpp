@@ -55,9 +55,9 @@ cexp() {
 
   // Wait for user input
   while (1) {
-    if (Global.need_refresh) {
+    if (term.need_refresh) {
       refreshScreen(paths, Pos);
-      Global.need_refresh = false;
+      term.need_refresh = false;
     }
     processKeypress(paths, Pos);
   }

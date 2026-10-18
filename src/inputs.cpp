@@ -39,27 +39,27 @@ void processKeypress(Paths &paths, Placement &Pos) {
     int visible = Pos.screen_rows - 2;
     if (Pos.cur_row - Pos.window_offset >= visible)
       Pos.window_offset = Pos.cur_row - visible + 1;
-    Global.need_refresh = true;
+    term.need_refresh = true;
   }
 
   if (c == 0) {
-    if (Global.message_to_display != DrawMessageCode::none) {
-      Global.message_ticks++;
-      if (Global.message_ticks >= 12) {
-        Global.message_to_display = DrawMessageCode::none;
-        Global.need_refresh = true;
-        Global.message_ticks = 0;
+    if (term.message_to_display != DrawMessageCode::none) {
+      term.message_ticks++;
+      if (term.message_ticks >= 12) {
+        term.message_to_display = DrawMessageCode::none;
+        term.need_refresh = true;
+        term.message_ticks = 0;
       }
     }
     return;
   }
 
-  Global.message_to_display = DrawMessageCode::none;
-  Global.message_ticks = 0;
-  Global.need_refresh = true;
-  Global.fs_error_message = "";
+  term.message_to_display = DrawMessageCode::none;
+  term.message_ticks = 0;
+  term.need_refresh = true;
+  term.fs_error_message = "";
 
-  switch (Global.state) {
+  switch (term.state) {
 
   case State::Browser: {
     switch (c) {
@@ -68,17 +68,17 @@ void processKeypress(Paths &paths, Placement &Pos) {
     case 'Q':
     // Esc
     case '\x1b': {
-      write(STDOUT_FILENO, Global.clear_and_to_corner.c_str(),
-            Global.clear_and_to_corner.size());
+      write(STDOUT_FILENO, term.clear_and_to_corner.c_str(),
+            term.clear_and_to_corner.size());
       exit(0);
       break;
     }
 
     case 'H': {
-      if (Global.hidden) {
-        Global.hidden = false;
+      if (term.hidden) {
+        term.hidden = false;
       } else {
-        Global.hidden = true;
+        term.hidden = true;
       }
       loadEntriesFrPath(paths, Pos);
       break;
@@ -87,39 +87,39 @@ void processKeypress(Paths &paths, Placement &Pos) {
     // Delete
     case 'd': {
       if (paths.entries.empty()) {
-        Global.message_to_display = DrawMessageCode::deleting_in_empty_folder;
+        term.message_to_display = DrawMessageCode::deleting_in_empty_folder;
         break;
       }
-      Global.hidden_holder = Global.hidden;
-      Global.hidden = false;
-      Global.state = State::Delete;
+      term.hidden_holder = term.hidden;
+      term.hidden = false;
+      term.state = State::Delete;
       break;
     }
 
     // Add
     case 'a': {
-      Global.hidden_holder = Global.hidden;
-      Global.hidden = false;
-      Global.state = State::Add;
+      term.hidden_holder = term.hidden;
+      term.hidden = false;
+      term.state = State::Add;
       break;
     }
 
     // Set State to Rename
     case 'r': {
       if (paths.entries.empty()) {
-        Global.message_to_display = DrawMessageCode::renaming_in_empty_folder;
+        term.message_to_display = DrawMessageCode::renaming_in_empty_folder;
         break;
       }
-      Global.hidden_holder = Global.hidden;
-      Global.hidden = false;
-      Global.state = State::Rename;
+      term.hidden_holder = term.hidden;
+      term.hidden = false;
+      term.state = State::Rename;
       break;
     }
 
     case 's': {
-      Global.hidden_holder = Global.hidden;
-      Global.hidden = false;
-      Global.state = State::Search;
+      term.hidden_holder = term.hidden;
+      term.hidden = false;
+      term.state = State::Search;
       break;
     }
 
@@ -131,15 +131,15 @@ void processKeypress(Paths &paths, Placement &Pos) {
         std::ofstream out("/tmp/cexp-cd");
         out << paths.entries[Pos.cur_row].path().string();
         out.close();
-        write(STDOUT_FILENO, Global.clear_and_to_corner.c_str(),
-              Global.clear_and_to_corner.size());
+        write(STDOUT_FILENO, term.clear_and_to_corner.c_str(),
+              term.clear_and_to_corner.size());
         exit(0);
       } else {
         std::ofstream out("/tmp/cexp-cd");
         out << paths.entries[Pos.cur_row].path().parent_path().string();
         out.close();
-        write(STDOUT_FILENO, Global.clear_and_to_corner.c_str(),
-              Global.clear_and_to_corner.size());
+        write(STDOUT_FILENO, term.clear_and_to_corner.c_str(),
+              term.clear_and_to_corner.size());
         exit(0);
       }
     }
@@ -150,7 +150,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     // Enter
     case '\r': {
       if (paths.entries.empty()) {
-        Global.message_to_display = DrawMessageCode::opening_in_empty_fodler;
+        term.message_to_display = DrawMessageCode::opening_in_empty_fodler;
         break;
       }
       openCurrentPath(paths.entries[Pos.cur_row], paths, Pos);
@@ -160,14 +160,14 @@ void processKeypress(Paths &paths, Placement &Pos) {
     // Up
     case ARROW_UP:
     case 'k': {
-      moveCursorUp(Pos);
+      Pos.moveCursorUp();
       break;
     }
 
     // Down
     case ARROW_DOWN:
     case 'j': {
-      moveCursorDown(paths, Pos);
+      Pos.moveCursorDown(paths);
       break;
     }
 
@@ -180,10 +180,10 @@ void processKeypress(Paths &paths, Placement &Pos) {
       break;
     }
     case '?': {
-      Global.hidden_holder = Global.hidden;
-      Global.previous_state = Global.state;
-      Global.hidden = false;
-      Global.state = State::Keys;
+      term.hidden_holder = term.hidden;
+      term.previous_state = term.state;
+      term.hidden = false;
+      term.state = State::Keys;
       break;
     }
     }
@@ -195,26 +195,26 @@ void processKeypress(Paths &paths, Placement &Pos) {
     switch (c) {
     // Enter
     case '\r': {
-      if (Global.search_selector) {
+      if (term.search_selector) {
         selectSearchPath(paths, Pos);
-        Global.search_selector = false;
+        term.search_selector = false;
       } else {
         Pos.window_offset = 0;
         Pos.cur_row = 0;
         if (paths.search_in == "") {
-          Global.message_to_display = DrawMessageCode::entered_empty_field;
+          term.message_to_display = DrawMessageCode::entered_empty_field;
           break;
         }
-        Global.search_selector = true;
+        term.search_selector = true;
         setSearchPath(paths);
       }
       break;
     }
 
     case 'l': {
-      if (Global.search_selector) {
+      if (term.search_selector) {
         selectSearchPath(paths, Pos);
-        Global.search_selector = false;
+        term.search_selector = false;
       } else {
         Pos.window_offset = 0;
         paths.search_in += c;
@@ -224,16 +224,16 @@ void processKeypress(Paths &paths, Placement &Pos) {
     }
 
     case ARROW_RIGHT: {
-      if (Global.search_selector) {
+      if (term.search_selector) {
         selectSearchPath(paths, Pos);
-        Global.search_selector = false;
+        term.search_selector = false;
       }
       break;
     }
 
     // Up during search selection
     case ARROW_UP: {
-      if (Global.search_selector) {
+      if (term.search_selector) {
         moveCursorUpSearch(Pos);
       }
       break;
@@ -245,7 +245,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
 
     // Up during search selection
     case 'k': {
-      if (Global.search_selector) {
+      if (term.search_selector) {
         moveCursorUpSearch(Pos);
       } else {
         Pos.window_offset = 0;
@@ -257,15 +257,15 @@ void processKeypress(Paths &paths, Placement &Pos) {
 
     // Key Binds
     case '?': {
-      Global.previous_state = Global.state;
-      Global.hidden = false;
-      Global.state = State::Keys;
+      term.previous_state = term.state;
+      term.hidden = false;
+      term.state = State::Keys;
       break;
     }
 
     // Down during path selection
     case ARROW_DOWN: {
-      if (Global.search_selector) {
+      if (term.search_selector) {
         moveCursorDownSearch(paths, Pos);
       }
       break;
@@ -273,7 +273,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
 
     // Down during path selection
     case 'j': {
-      if (Global.search_selector) {
+      if (term.search_selector) {
         moveCursorDownSearch(paths, Pos);
       } else {
         Pos.window_offset = 0;
@@ -285,14 +285,14 @@ void processKeypress(Paths &paths, Placement &Pos) {
 
     // Esc
     case '\x1b': {
-      if (Global.search_selector) {
-        Global.search_selector = false;
+      if (term.search_selector) {
+        term.search_selector = false;
       } else {
         Pos.window_offset = 0;
-        Global.hidden = Global.hidden_holder;
-        Global.search_selector = false;
+        term.hidden = term.hidden_holder;
+        term.search_selector = false;
         loadEntriesFrPath(paths, Pos);
-        Global.state = State::Browser;
+        term.state = State::Browser;
         paths.search_in = "";
       }
       break;
@@ -300,7 +300,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
 
     // Backspace
     case '\x7f': {
-      Global.search_selector = false;
+      term.search_selector = false;
       Pos.window_offset = 0;
       if (paths.search_in.size() > 0) {
         paths.search_in.pop_back();
@@ -310,7 +310,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     }
 
     default: {
-      Global.search_selector = false;
+      term.search_selector = false;
       Pos.window_offset = 0;
       paths.search_in += c;
       setSearchPath(paths);
@@ -327,7 +327,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
 
     case 'y':
     case 'Y': {
-      Global.hidden = Global.hidden_holder;
+      term.hidden = term.hidden_holder;
       deletePath(paths, Pos);
       break;
     }
@@ -336,10 +336,10 @@ void processKeypress(Paths &paths, Placement &Pos) {
     case '\x1b':
     case 'n':
     case 'N': {
-      Global.hidden = Global.hidden_holder;
+      term.hidden = term.hidden_holder;
       loadEntriesFrPath(paths, Pos);
-      Global.state = State::Browser;
-      Global.del_choice = "";
+      term.state = State::Browser;
+      term.del_choice = "";
       break;
     }
     }
@@ -352,28 +352,28 @@ void processKeypress(Paths &paths, Placement &Pos) {
     // Enter
     case '\r': {
       addNewPath(paths, Pos);
-      Global.hidden = Global.hidden_holder;
+      term.hidden = term.hidden_holder;
       Pos.cur_row = 0;
       loadEntriesFrPath(paths, Pos);
-      Global.state = State::Browser;
-      Global.brand_new_name = "";
+      term.state = State::Browser;
+      term.brand_new_name = "";
       break;
     }
 
     // Esc
     case '\x1b': {
-      Global.hidden = Global.hidden_holder;
+      term.hidden = term.hidden_holder;
       Pos.cur_row = 0;
       loadEntriesFrPath(paths, Pos);
-      Global.state = State::Browser;
-      Global.brand_new_name = "";
+      term.state = State::Browser;
+      term.brand_new_name = "";
       break;
     }
 
     // Backspace
     case '\x7f': {
-      if (Global.brand_new_name.size() > 0) {
-        Global.brand_new_name.pop_back();
+      if (term.brand_new_name.size() > 0) {
+        term.brand_new_name.pop_back();
       }
       break;
     }
@@ -392,7 +392,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     }
 
     default: {
-      Global.brand_new_name += c;
+      term.brand_new_name += c;
       break;
     }
     }
@@ -410,8 +410,8 @@ void processKeypress(Paths &paths, Placement &Pos) {
     switch (c) {
 
     default: {
-      Global.state = Global.previous_state;
-      Global.hidden = Global.hidden_holder;
+      term.state = term.previous_state;
+      term.hidden = term.hidden_holder;
       loadEntriesFrPath(paths, Pos);
       break;
     }
@@ -426,33 +426,33 @@ void processKeypress(Paths &paths, Placement &Pos) {
     switch (c) {
     // Enter
     case '\r': {
-      if (Global.new_name == "") {
-        Global.message_to_display = DrawMessageCode::entered_empty_field;
-        Global.state = State::Rename;
-        Global.new_name = "";
+      if (term.new_name == "") {
+        term.message_to_display = DrawMessageCode::entered_empty_field;
+        term.state = State::Rename;
+        term.new_name = "";
       } else {
         renamePath(paths, Pos);
-        Global.hidden = Global.hidden_holder;
+        term.hidden = term.hidden_holder;
         loadEntriesFrPath(paths, Pos);
-        Global.state = State::Browser;
-        Global.new_name = "";
+        term.state = State::Browser;
+        term.new_name = "";
       }
       break;
     }
 
     // Esc
     case '\x1b': {
-      Global.hidden = Global.hidden_holder;
+      term.hidden = term.hidden_holder;
       loadEntriesFrPath(paths, Pos);
-      Global.state = State::Browser;
-      Global.new_name = "";
+      term.state = State::Browser;
+      term.new_name = "";
       break;
     }
 
     // Backspace
     case '\x7f': {
-      if (Global.new_name.size() > 0) {
-        Global.new_name.pop_back();
+      if (term.new_name.size() > 0) {
+        term.new_name.pop_back();
       }
       break;
     }
@@ -471,47 +471,12 @@ void processKeypress(Paths &paths, Placement &Pos) {
     }
 
     default: {
-      Global.new_name += c;
+      term.new_name += c;
       break;
     }
     }
     break;
   }
-  }
-}
-
-void moveCursorDown(Paths &paths, Placement &Pos) {
-
-  if (Pos.cur_row + 1 < paths.entries.size()) {
-
-    if (Pos.cur_row - Pos.window_offset + 2 <
-        Pos.screen_rows - (Pos.screen_rows / 2)) {
-
-      Pos.cur_row++;
-
-    } else if (Pos.window_offset + paths.rows_for_entry <
-               paths.entries.size() + 2) {
-
-      Pos.window_offset++;
-      Pos.cur_row++;
-
-    } else if (Pos.cur_row + 1 <= paths.entries.size()) {
-
-      Pos.cur_row++;
-    }
-  }
-}
-
-void moveCursorUp(Placement &Pos) {
-
-  if (Pos.cur_row - Pos.window_offset + 2 > 2) {
-
-    Pos.cur_row--;
-
-  } else if (Pos.window_offset > 0) {
-
-    Pos.window_offset--;
-    Pos.cur_row--;
   }
 }
 
