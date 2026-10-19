@@ -2,10 +2,10 @@
 #include "path_handle.h"
 #include "search.h"
 #include "term_set.h"
-#include <filesystem>
 #include <fstream>
 #include <unistd.h>
 
+#include <filesystem>
 int readKey() {
 
   char c;
@@ -30,12 +30,11 @@ int readKey() {
 void processKeypress(Paths &paths, Placement &Pos) {
 
   int c = readKey();
-  int rows, cols;
+  int rows = Pos.screen_rows;
+  int cols = Pos.screen_cols;
 
-  if (getWinSize(&rows, &cols) == 0 &&
+  if (Pos.getWinSize() == 0 &&
       (rows != Pos.screen_rows || (cols != Pos.screen_cols))) {
-    Pos.screen_rows = rows;
-    Pos.screen_cols = cols;
     int visible = Pos.screen_rows - 2;
     if (Pos.cur_row - Pos.window_offset >= visible)
       Pos.window_offset = Pos.cur_row - visible + 1;
@@ -234,7 +233,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     // Up during search selection
     case ARROW_UP: {
       if (term.search_selector) {
-        moveCursorUpSearch(Pos);
+        Pos.moveCursorUpSearch();
       }
       break;
     }
@@ -246,7 +245,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     // Up during search selection
     case 'k': {
       if (term.search_selector) {
-        moveCursorUpSearch(Pos);
+        Pos.moveCursorUpSearch();
       } else {
         Pos.window_offset = 0;
         paths.search_in += c;
@@ -266,7 +265,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     // Down during path selection
     case ARROW_DOWN: {
       if (term.search_selector) {
-        moveCursorDownSearch(paths, Pos);
+        Pos.moveCursorDownSearch(paths);
       }
       break;
     }
@@ -274,7 +273,7 @@ void processKeypress(Paths &paths, Placement &Pos) {
     // Down during path selection
     case 'j': {
       if (term.search_selector) {
-        moveCursorDownSearch(paths, Pos);
+        Pos.moveCursorDownSearch(paths);
       } else {
         Pos.window_offset = 0;
         paths.search_in += c;

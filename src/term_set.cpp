@@ -1,7 +1,6 @@
 #include "term_set.h"
 #include "config.h"
 #include "path_handle.h"
-#include "search.h"
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -48,58 +47,9 @@ void enableRawMode() {
   write(STDOUT_FILENO, "\x1b[?1049h", 8);
 }
 
-std::string drawRows(Paths &paths, Placement &Pos) {
-  std::string full_buf;
-
-  Pos.rows_for_entry = Pos.screen_rows - 2;
-
-  for (int i = 0; i < Pos.rows_for_entry; i++) {
-
-    int index = i + Pos.window_offset;
-
-    if (index >= paths.entries.size())
-      break;
-
-    std::string buf = "» " + paths.entries[index].path().filename().string();
-
-    if ((buf.size() > Pos.screen_cols - 3)) {
-      buf = buf.substr(0, Pos.screen_cols - 3) + "...";
-    }
-
-    buf.insert(0, config.list_color);
-    buf.append(config.color_reset);
-
-    // If not at the last line keep writing a new line for the next row
-    if (i < Pos.rows_for_entry - 1) {
-      buf += "\r\n";
-    }
-
-    // Add the new line to the previous ones
-    full_buf += buf;
-  }
-
-  return full_buf;
-}
-
-int getWinSize(int *rows, int *cols) {
-
-  struct winsize ws;
-
-  // If the window doesnt exist or is invalid then exit
-  if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
-
-    return -1;
-
-    // Pull the terminal window dimensions
-  } else {
-
-    *cols = ws.ws_col;
-    *rows = ws.ws_row;
-    return 0;
-  }
-}
-
 void refreshScreen(Paths &paths, Placement &Pos) {
+
+  Renderer renderer(paths, Pos, config);
 
   // Clear screen and set cursor to top corner and then write the current path
   // Unwrap comment for "Debug" prints
@@ -122,25 +72,25 @@ void refreshScreen(Paths &paths, Placement &Pos) {
 
   case State::Browser: {
 
-    drawBrowser(full_buf, paths, Pos);
+    renderer.drawBrowser(full_buf, term);
     break;
   }
 
   case State::Rename: {
 
-    drawRename(full_buf, paths, Pos);
+    renderer.drawRename(full_buf, term);
     break;
   }
 
   case State::Add: {
 
-    drawAdd(full_buf, paths, Pos);
+    renderer.drawAdd(full_buf, term);
     break;
   }
 
   case State::Delete: {
 
-    drawDelete(full_buf, paths, Pos);
+    renderer.drawDelete(full_buf, term, config);
     break;
   }
 
@@ -152,7 +102,7 @@ void refreshScreen(Paths &paths, Placement &Pos) {
 
   case State::Search: {
 
-    drawSearch(full_buf, paths, Pos);
+    renderer.drawSearch(full_buf, term);
     break;
   }
 
@@ -180,7 +130,7 @@ void initExplorer(Paths &paths, Placement &Pos) {
   term.hidden = config.hidden;
 
   // If the window comes back as -1 or invalid then "die"
-  if (getWinSize(&Pos.screen_rows, &Pos.screen_cols) == -1)
+  if (Pos.getWinSize() == -1)
     die("getWinSize");
 
   // If it isnt an invalid screen size then load the path into the entries
@@ -442,200 +392,6 @@ void parseConfigFile(fs::path &config_path) {
   }
 }
 
-std::string moveTo(const int row, const int col) {
-  std::string new_position;
-
-  new_position =
-      "\x1b[" + std::to_string(row) + ";" + std::to_string(col) + "H";
-
-  return new_position;
-}
-
-void drawBrowser(std::string &full_buf, Paths &paths, Placement &Pos) {
-
-  full_buf += drawRows(paths, Pos);
-
-  // Put the cursor on the correct row with Pos.cur_row
-
-  if (term.message_to_display == DrawMessageCode::opening_in_empty_fodler) {
-    std::string error_mes =
-        "Nothing to open " + moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
-    full_buf += error_mes;
-  }
-
-  if (term.message_to_display ==
-      DrawMessageCode::opening_empty_folder_warning) {
-    std::string error_mes = "[Folder is empty or only contains hidden]" +
-                            moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
-    full_buf += error_mes;
-  }
-
-  if (term.message_to_display == DrawMessageCode::renaming_in_empty_folder) {
-    std::string error_mes =
-        "Nothing to rename " + moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
-    full_buf += error_mes;
-  }
-
-  if (term.message_to_display == DrawMessageCode::deleting_in_empty_folder) {
-    std::string error_mes =
-        "Nothing to delete " + moveTo(Pos.cur_row - Pos.window_offset + 2, 1);
-    full_buf += error_mes;
-  }
-
-  if (term.message_to_display == DrawMessageCode::cant_go_past_base_dir) {
-    std::string error_mes = moveTo(Pos.cur_row - Pos.window_offset + 2, 1) +
-                            "[Cant go further back than the home directory]";
-    full_buf += error_mes;
-  }
-
-  if (term.message_to_display == DrawMessageCode::trying_add_duplicate) {
-    std::string error_mes =
-        moveTo(Pos.cur_row - Pos.window_offset + 2, 1) +
-        "Error: Folder or file already exists with that name";
-    full_buf += error_mes;
-  }
-
-  if (term.message_to_display == DrawMessageCode::cant_be_opened_with_editor) {
-    std::string error_mes =
-        moveTo(Pos.cur_row - Pos.window_offset + 2, 1) +
-        "[Error this file type can not be opened with an editor]";
-    full_buf += error_mes;
-  }
-
-  if (term.message_to_display == DrawMessageCode::fs_error) {
-    std::string error_mes = "Error: " + term.fs_error_message;
-    full_buf += error_mes;
-  }
-
-  full_buf += moveTo(Pos.screen_rows, 1);
-  full_buf += "'?' for Keys \x1b[" +
-              std::to_string(Pos.cur_row - Pos.window_offset + 2) + ";1H";
-}
-
-void drawRename(std::string &full_buf, Paths &paths, Placement &Pos) {
-
-  full_buf += drawRows(paths, Pos);
-
-  full_buf += moveTo(Pos.screen_rows, 1);
-
-  std::string rename_string =
-      "Rename '" + paths.entries[Pos.cur_row].path().filename().string() +
-      "' to: " + term.new_name;
-  full_buf += rename_string;
-
-  // Calculate cursor offset
-  int name_offset = rename_string.size() + 1;
-
-  // Put the cursor on the correct row at the bottom offset by the name
-  full_buf += moveTo(Pos.screen_rows, name_offset);
-
-  if (term.message_to_display == DrawMessageCode::entered_empty_field) {
-    std::string error_mes = "Error: Field was empty";
-    full_buf += error_mes;
-  }
-
-  if (term.message_to_display == DrawMessageCode::fs_error) {
-    std::string error_mes = "Error: " + term.fs_error_message;
-    full_buf += error_mes;
-  }
-}
-
-void drawAdd(std::string &full_buf, Paths &paths, Placement &Pos) {
-
-  full_buf += drawRows(paths, Pos);
-
-  full_buf += moveTo(Pos.screen_rows, 1);
-
-  std::string add_string =
-      "Create ('/'in the start for directory): " + term.brand_new_name;
-
-  full_buf += add_string;
-  // Calculate cursor offset
-  int name_offset = add_string.size() + 1;
-
-  // Put the cursor on the correct row at the bottom offset by the name
-  full_buf += moveTo(Pos.screen_rows, name_offset);
-
-  if (term.message_to_display == DrawMessageCode::entered_empty_field) {
-    std::string error_mes = "Error: Field was empty";
-    full_buf += error_mes;
-  }
-
-  if (term.message_to_display == DrawMessageCode::trying_add_duplicate) {
-    std::string error_mes =
-        moveTo(Pos.cur_row - Pos.window_offset + 2, 1) +
-        "Error: Folder or file already exists with that name";
-    full_buf += error_mes;
-  }
-
-  if (term.message_to_display == DrawMessageCode::fs_error) {
-    std::string error_mes = "Error: " + term.fs_error_message;
-    full_buf += error_mes;
-  }
-}
-
-void drawDelete(std::string &full_buf, Paths &paths, Placement &Pos) {
-
-  full_buf += drawRows(paths, Pos);
-
-  full_buf += moveTo(Pos.screen_rows, 1) + config.delete_prompt_color;
-
-  std::string delete_string =
-      "Are you sure you want to delete '" +
-      paths.entries[Pos.cur_row].path().filename().string() + "': [y/n]";
-
-  // Calculate cursor offset
-  int name_offset = delete_string.size() + 1;
-
-  full_buf += delete_string;
-
-  // Put the cursor on the correct row and column with offset
-  full_buf += config.color_reset + moveTo(Pos.screen_rows, name_offset);
-
-  if (term.message_to_display == DrawMessageCode::fs_error) {
-    std::string error_mes = "Error: " + term.fs_error_message;
-    full_buf += error_mes;
-  }
-}
-
-void drawSearch(std::string &full_buf, Paths &paths, Placement &Pos) {
-
-  full_buf += term.clear_and_to_corner;
-
-  full_buf += drawSearchRows(paths, Pos);
-
-  full_buf += moveTo(Pos.screen_rows, 1);
-
-  std::string search_prompt = "Search for: ";
-
-  full_buf += search_prompt + paths.search_in;
-
-  if (!term.search_selector) {
-
-    // Calculate offset
-    int search_offset = paths.search_in.size() + search_prompt.size() + 1;
-
-    // Put the cursor on the correct row with screen_rows and offset
-    full_buf += moveTo(Pos.screen_rows, search_offset);
-  } else {
-
-    // Put the cursor on the correct row and first comuln
-    full_buf += moveTo(Pos.cur_row - Pos.window_offset + 1, 1);
-  }
-
-  if (term.message_to_display == DrawMessageCode::entered_empty_field) {
-    std::string error_mes = "Error: Field was empty";
-    full_buf += error_mes;
-  }
-
-  if (term.message_to_display == DrawMessageCode::cant_open_selection_search) {
-    std::string error_mes =
-        moveTo(Pos.cur_row - Pos.window_offset + 2, 1) +
-        "[Error this file type can not be opened: Loaded parent path]";
-    full_buf += error_mes;
-  }
-}
-
 void drawKeys(std::string &full_buf, Paths &paths, Placement &Pos) {
 
   if (term.previous_state == State::Search) {
@@ -676,4 +432,13 @@ void drawKeys(std::string &full_buf, Paths &paths, Placement &Pos) {
                "\r\n"
                "  press any key to go back\r\n";
   }
+}
+
+std::string moveTo(const int row, const int col) {
+  std::string new_position;
+
+  new_position =
+      "\x1b[" + std::to_string(row) + ";" + std::to_string(col) + "H";
+
+  return new_position;
 }

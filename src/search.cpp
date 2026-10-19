@@ -1,5 +1,4 @@
 #include "search.h"
-#include "config.h"
 #include "path_handle.h"
 #include "term_set.h"
 #include <algorithm>
@@ -92,75 +91,5 @@ void selectSearchPath(Paths &paths, Placement &Pos) {
   } else {
 
     term.message_to_display = DrawMessageCode::cant_open_selection_search;
-  }
-}
-
-std::string drawSearchRows(Paths &paths, Placement &Pos) {
-
-  std::string full_buf;
-
-  for (int i = 0; i < Pos.screen_rows - 1; i++) {
-
-    if (paths.search_in.size() < 1) {
-      break;
-    }
-
-    int index = i + Pos.window_offset;
-
-    if (index >= paths.hits.size())
-      break;
-
-    std::string buf;
-
-    buf += "» " + paths.all_paths[paths.hits[index].second].path().string();
-
-    if (buf.size() > Pos.screen_cols - 3) {
-      buf = buf.substr(0, Pos.screen_cols - 3) + "...";
-    }
-
-    buf.insert(0, config.list_color);
-    buf.append(config.color_reset);
-
-    if (i < Pos.screen_rows - 2) {
-      buf += "\r\n";
-    }
-
-    full_buf += buf;
-  }
-
-  return full_buf;
-}
-
-void moveCursorDownSearch(Paths &paths, Placement &Pos) {
-
-  if (Pos.cur_row + 1 < (paths.hits.size())) {
-
-    if (Pos.cur_row - Pos.window_offset + 2 <
-        Pos.screen_rows - (Pos.screen_rows / 2)) {
-
-      Pos.cur_row++;
-
-    } else if (Pos.window_offset + Pos.screen_rows < paths.hits.size()) {
-
-      Pos.window_offset++;
-      Pos.cur_row++;
-
-    } else if (Pos.cur_row + 1 < Pos.screen_rows) {
-
-      Pos.cur_row++;
-    }
-  }
-}
-
-void moveCursorUpSearch(Placement &Pos) {
-
-  if (Pos.cur_row - Pos.window_offset > 0) {
-
-    Pos.cur_row--;
-
-  } else if (Pos.window_offset > 0) {
-
-    Pos.window_offset--;
-    Pos.cur_row--;
   }
 }

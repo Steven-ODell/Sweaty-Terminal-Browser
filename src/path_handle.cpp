@@ -165,9 +165,7 @@ void openInViewer(const fs::path &file) {
   }
   // No waitpid — imv is a Wayland window, TUI keeps running
 }
-
 void openCurrentPath(const fs::path &cur_path, Paths &paths, Placement &Pos) {
-
   paths.full_path = cur_path;
   loadEntriesFrPath(paths, Pos);
 }

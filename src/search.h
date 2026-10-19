@@ -13,9 +13,3 @@ searchCurBuffer(Paths &paths, const std::string &cur_buffer);
 void setSearchPath(Paths &paths);
 
 void selectSearchPath(Paths &paths, Placement &Pos);
-
-std::string drawSearchRows(Paths &paths, Placement &Pos);
-
-void moveCursorDownSearch(Paths &paths, Placement &Pos);
-
-void moveCursorUpSearch(Placement &Pos);
